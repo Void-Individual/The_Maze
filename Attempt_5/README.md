@@ -1,0 +1,5 @@
+- Learning raycasting and how to implement it.
+- Implementing Mouse event controls for SDL2.
+- Optimizing surface loading and soft stretching.
+- Texture loading and rendering.
+- Changed the instance and replaced it with global variables that can be accessed from any files without passing it through function calls.

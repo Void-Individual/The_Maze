@@ -2,11 +2,10 @@
 
 /**
  * init_instance - Function to initialize a SDL window
- * @instance: The SDL instance to work on
  * Return: 0 if successfull, else 1
 */
 
-int init_instance(SDL_Instance *instance)
+int init_instance(void)
 {
 	/* Initialize SDL*/
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -16,9 +15,9 @@ int init_instance(SDL_Instance *instance)
 	}
 
 	/*Create a new window instance*/
-	instance->window = SDL_CreateWindow("Void's SDL2 \\o/",
+	window = SDL_CreateWindow("Void's SDL2 \\o/",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
-	if (instance->window == NULL)
+	if (window == NULL)
 	{
 		fprintf(stderr, "Create window error: %s\n", SDL_GetError());
 		SDL_Quit();
@@ -28,10 +27,10 @@ int init_instance(SDL_Instance *instance)
     /*SDL_Event e; int quit = 0; while( quit == 0 ){ while( SDL_PollEvent( &e ) ){ if( e.type == SDL_QUIT ) quit = 1; } }*/
 
 	/*Create a new renderer instance linked to the window*/
-	instance->renderer = SDL_CreateRenderer(instance->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	if (instance->renderer == NULL)
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	if (renderer == NULL)
 	{
-		SDL_DestroyWindow(instance->window);
+		SDL_DestroyWindow(window);
 		fprintf(stderr, "Create renderer error: %s\n", SDL_GetError());
 		SDL_Quit();
 		return (1);

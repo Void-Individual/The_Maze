@@ -1,12 +1,11 @@
 #include "maze.h"
 
 /**
- * close_instance - Function to release SDL instance
- * @instance: Running SDL instance
+ * close_SDL - Function to release SDL instance
  * Return: empty
 */
 
-void close_instance(SDL_Instance *instance)
+void close_SDL(void)
 {
 	//Deallocate surfaces
 	for( int i = 0; i < KEY_PRESS_SURFACE_TOTAL; ++i )
@@ -15,8 +14,7 @@ void close_instance(SDL_Instance *instance)
 		gKeyPressSurfaces[ i ] = NULL;
 	}
 
-	SDL_DestroyRenderer(instance->renderer);
-	SDL_DestroyWindow(instance->window);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
 	SDL_Quit();
-	free(instance);
 }

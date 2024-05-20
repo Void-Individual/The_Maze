@@ -10,17 +10,21 @@
  * @window: The running window for the sdl instance
  * @renderer: The renderer for the instance
 */
-typedef struct SDL_Instance
-{
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Surface *windowsurface;
-} SDL_Instance;
+//typedef struct SDL_Instance
+//{
+//    SDL_Window *window;
+//    SDL_Renderer *renderer;
+//    SDL_Surface *windowsurface;
+//} SDL_Instance;
 
-int init_instance(SDL_Instance *);
-void draw_stuff(SDL_Instance *);
+extern SDL_Window *window;
+extern SDL_Renderer *renderer;
+extern SDL_Surface *windowsurface;
+
+int init_instance(void);
+void draw_stuff(void);
 int poll_events(void);
-void close_instance(SDL_Instance *);
+void close_SDL(void);
 int loadMedia(void);
 SDL_Surface *loadSurface(char *path);
 
