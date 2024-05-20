@@ -6,10 +6,10 @@ OBJS = $(SOURCES:.c=.o)
 CC = gcc
 
 # FLAGS specifies the additional compilation flag options to be used
-FLAGS = -Wall -Werror -Wextra -pedantic
+FLAGS = -g -Wall -Werror -Wextra -pedantic
 
 # LINKER specifies the libraries that we're linking to
-LINKER = -lSDL2
+LINKER = -lSDL2 -lSDL2_image
 
 #OBJ is the executable object file
 OBJ = maze

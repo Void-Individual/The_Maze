@@ -19,7 +19,7 @@ int poll_events(void)
 			case SDL_KEYDOWN:
 				key = event.key;
 				/*If escape was pressed*/
-				if (key.keysym.scancode == 0x29)
+				if (key.keysym.sym == SDLK_ESCAPE)
 					return (1);
 				else
 					switch (key.keysym.sym)
@@ -35,6 +35,9 @@ int poll_events(void)
                 	        break;
                 	    case SDLK_RIGHT:
                 	        gCurrentSurface = gKeyPressSurfaces[KEY_PRESS_SURFACE_RIGHT];
+                	        break;
+						case SDLK_p:
+							gCurrentSurface = gKeyPressSurfaces[KEY_PRESS_SURFACE_p];
                 	        break;
                 	    default:
                 	        gCurrentSurface = gKeyPressSurfaces[KEY_PRESS_SURFACE_DEFAULT];

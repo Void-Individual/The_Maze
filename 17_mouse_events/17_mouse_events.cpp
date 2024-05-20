@@ -2,8 +2,8 @@
 and may not be redistributed without written permission.*/
 
 //Using SDL, SDL_image, standard IO, and strings
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <string>
 
@@ -37,12 +37,12 @@ class LTexture
 
 		//Loads image at specified path
 		bool loadFromFile( std::string path );
-		
+
 		#if defined(SDL_TTF_MAJOR_VERSION)
 		//Creates image from font string
 		bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
 		#endif
-		
+
 		//Deallocates texture
 		void free();
 
@@ -54,7 +54,7 @@ class LTexture
 
 		//Set alpha modulation
 		void setAlpha( Uint8 alpha );
-		
+
 		//Renders texture at given point
 		void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
 
@@ -83,7 +83,7 @@ class LButton
 
 		//Handles mouse event
 		void handleEvent( SDL_Event* e );
-	
+
 		//Shows button sprite
 		void render();
 
@@ -115,7 +115,7 @@ SDL_Rect gSpriteClips[ BUTTON_SPRITE_TOTAL ];
 LTexture gButtonSpriteSheetTexture;
 
 //Buttons objects
-LButton gButtons[ TOTAL_BUTTONS ]; 
+LButton gButtons[ TOTAL_BUTTONS ];
 
 LTexture::LTexture()
 {
@@ -202,7 +202,7 @@ bool LTexture::loadFromRenderedText( std::string textureText, SDL_Color textColo
 		//Get rid of old surface
 		SDL_FreeSurface( textSurface );
 	}
-	
+
 	//Return success
 	return mTexture != NULL;
 }
@@ -231,7 +231,7 @@ void LTexture::setBlendMode( SDL_BlendMode blending )
 	//Set blending function
 	SDL_SetTextureBlendMode( mTexture, blending );
 }
-		
+
 void LTexture::setAlpha( Uint8 alpha )
 {
 	//Modulate texture alpha
@@ -325,11 +325,11 @@ void LButton::handleEvent( SDL_Event* e )
 				case SDL_MOUSEMOTION:
 				mCurrentSprite = BUTTON_SPRITE_MOUSE_OVER_MOTION;
 				break;
-			
+
 				case SDL_MOUSEBUTTONDOWN:
 				mCurrentSprite = BUTTON_SPRITE_MOUSE_DOWN;
 				break;
-				
+
 				case SDL_MOUSEBUTTONUP:
 				mCurrentSprite = BUTTON_SPRITE_MOUSE_UP;
 				break;
@@ -337,7 +337,7 @@ void LButton::handleEvent( SDL_Event* e )
 		}
 	}
 }
-	
+
 void LButton::render()
 {
 	//Show current button sprite
@@ -435,7 +435,7 @@ void close()
 	//Free loaded images
 	gButtonSpriteSheetTexture.free();
 
-	//Destroy window	
+	//Destroy window
 	SDL_DestroyRenderer( gRenderer );
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
@@ -461,7 +461,7 @@ int main( int argc, char* args[] )
 			printf( "Failed to load media!\n" );
 		}
 		else
-		{	
+		{
 			//Main loop flag
 			bool quit = false;
 
@@ -479,7 +479,7 @@ int main( int argc, char* args[] )
 					{
 						quit = true;
 					}
-					
+
 					//Handle button events
 					for( int i = 0; i < TOTAL_BUTTONS; ++i )
 					{

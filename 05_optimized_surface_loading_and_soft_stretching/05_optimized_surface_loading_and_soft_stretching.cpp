@@ -2,7 +2,7 @@
 and may not be redistributed without written permission.*/
 
 //Using SDL, standard IO, and strings
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <stdio.h>
 #include <string>
 
@@ -24,7 +24,7 @@ SDL_Surface* loadSurface( std::string path );
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
-	
+
 //The surface contained by the window
 SDL_Surface* gScreenSurface = NULL;
 
@@ -133,7 +133,7 @@ int main( int argc, char* args[] )
 			printf( "Failed to load media!\n" );
 		}
 		else
-		{	
+		{
 			//Main loop flag
 			bool quit = false;
 
@@ -160,7 +160,7 @@ int main( int argc, char* args[] )
 				stretchRect.w = SCREEN_WIDTH;
 				stretchRect.h = SCREEN_HEIGHT;
 				SDL_BlitScaled( gStretchedSurface, NULL, gScreenSurface, &stretchRect );
-			
+
 				//Update the surface
 				SDL_UpdateWindowSurface( gWindow );
 			}
