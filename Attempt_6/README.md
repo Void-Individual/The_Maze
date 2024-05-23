@@ -1,7 +1,9 @@
-- Starting the program afresh with an attempt at using raycasting
-- It was hellish, gave me a migraine and strained me for a day, but i finally did it.
-- There is a small inacurracy where the walls have an extended ray/ line on them. I intend to fix that in later attempts
-- In this attampt, I created a window with split screen access to display both the 3d and 2d maps side by side.
+# Raycasting
+
+	Starting the program afresh with an attempt at using raycasting. It was hellish, gave me a migraine and strained me for a day, but i finally did it.
+	There is a small inacurracy where the walls have an extended ray/ line on them and I intend to fix that in later attempts. In this attampt however, I did the following:
+
+- Created a window with split screen access to display both the 3d and 2d maps side by side.
 - The player is visible as a small point on the 2d map.
 - There are lines showing the players field of view on the 2d map.
 - I added movement functions using up, down, w, s.
