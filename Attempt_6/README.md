@@ -1,6 +1,6 @@
 # Raycasting
 
-	Starting the program afresh with an attempt at using raycasting.
+Starting the program afresh with an attempt at using raycasting.
 It was hellish, gave me a migraine and strained me for a day, but i finally did it.
 There is a small inacurracy where the walls have an extended ray/ line on them and I
 intend to fix that in later attempts. In this attampt however, I did the following:
