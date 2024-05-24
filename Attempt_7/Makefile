@@ -6,7 +6,7 @@ OBJS = $(SOURCES:.c=.o)
 CC = gcc
 
 # FLAGS specifies the additional compilation flag options to be used
-FLAGS = -g -Wall -Werror -Wextra -pedantic
+FLAGS = -g -w -Wall -Werror -Wextra -pedantic
 
 # LINKER specifies the libraries that we're linking to
 LINKER = -lSDL2 -lm
