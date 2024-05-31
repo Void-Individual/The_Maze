@@ -61,6 +61,30 @@ float dist(float ax, float ay, float bx, float by, float ang)
 	return (sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay)));
 }
 
+//5548124145 ALX Costain hub wifi password
+
+void DrawThickLine(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int thickness)
+{
+	float angle = atan2(y2 - y1, x2 - x1);
+	float halfthickness = thickness / 2.0f;
+
+	/*Corners of the thick line*/
+	int xo = (int)(halfthickness * sin(angle));
+	int yo = (int)(halfthickness * cos(angle));
+
+	SDL_Point points[4] = {
+		{x1 - xo, y1 + yo},
+		{x1 + xo, y1 - yo},
+		{x2 + xo, y2 - yo},
+		{x2 - xo, y2 + yo}
+	};
+
+	/*Draw the filled rectangle as a thick line*/
+	SDL_RenderDrawLines(renderer, points, 4);
+	/*CLosing the rectangle*/
+	SDL_RenderDrawLine(renderer, points[0].x, points[0].y, points[3].x, points[3].y);
+}
+
 void drawRays2D(void)
 {
 	int r, mx, my, mp, dof;
@@ -158,11 +182,12 @@ void drawRays2D(void)
 		}
 
 		int rt = 8; /*Set the desired ray thickness*/
-		for (int i = -rt/2; i <= rt/2; i++)
-		{
-			SDL_RenderDrawLine(renderer, px + i, py, rx + i, ry);
-			SDL_RenderDrawLine(renderer, px, py + i, rx, ry + i);
-		}
+		//for (int i = -rt/2; i <= rt/2; i++)
+		//{
+		//	SDL_RenderDrawLine(renderer, px + i, py, rx + i, ry);
+		//	SDL_RenderDrawLine(renderer, px, py + i, rx, ry + i);
+		//}
+		DrawThickLine(renderer, px, py, rx--, ry--, rt);
 
 		/*Draw the 3D walls*/
 		float ca = pa - ra;
@@ -175,7 +200,7 @@ void drawRays2D(void)
 		for (int i = -rt/2; i <= rt/2; i++)
 		{
 			SDL_RenderDrawLine(renderer, r * 8+530 + i, lineO, r *8+530 + i, lineH+lineO);
-			SDL_RenderDrawLine(renderer, r * 8+530, lineO + i, r *8+530, lineH+lineO + i);
+			//SDL_RenderDrawLine(renderer, r * 8+530, lineO + i, r *8+530, lineH+lineO + i);
 		}
 		ra += DR;
 		if (ra < 0) ra += 2 * PI;
