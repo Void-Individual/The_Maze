@@ -11,3 +11,4 @@
 - Configured the walls to open when "o" is pressed while standing in front of it.
 - After crossing the door, configured it to automatically close.
 - Added textures to the walls and roof, but it isnt reflecting properly due to an error in my math.
+- FIxed the errors in the roof and floor texture. Its a little skewed, but apparently, it's to be expected.
