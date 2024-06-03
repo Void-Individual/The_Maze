@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <math.h>
 #include "textures/sky.ppm"
+#include "textures/win.ppm"
 #include "textures/All_Textures.ppm"
 
 #define mapX  8     /*map width*/
@@ -30,16 +31,16 @@ float distance(float ax, float ay, float bx, float by, float ang)
 }
 
 float px,py,pdx,pdy,pa;
-float movementSpeed = 0.3;
-float rotationSpeed = 0.5;
+float movementSpeed = 0.05;
+float rotationSpeed = 0.03;
 Uint32 frame1,frame2;
 float fps;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_Surface *screen_surface = NULL;
 
-int SCREEN_WIDTH = 1024;
-int SCREEN_HEIGHT = 510;
+int SCREEN_WIDTH = 960;
+int SCREEN_HEIGHT = 640;
 
 int old_wall = -1; /*Give the old wall an invalid value*/
 int door_open = 0; /*Bool condition for toggling door*/
@@ -194,7 +195,29 @@ void drawSky(void)
 			int green = sky[pixel+1];
 			int blue = sky[pixel+2];
 			SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
-			SDL_RenderDrawLargePoint(4, x*4+530, y*4);
+			SDL_RenderDrawLargePoint(8, x*8, y*8);
+		}
+}
+
+void screen(int v)
+{
+	int x, y;
+	int *T;
+	//if (v == 1)
+	//	T = sky;
+	if (v == 2)
+		T = win;
+	//if (v == 3)
+	//	T = lose;
+	for (y = 0; y < 80; y++)
+		for (x = 0; x < 120; x++)
+		{
+			int pixel = (y*120+x)*3;
+			int red = T[pixel+0];
+			int green = T[pixel+1];
+			int blue = T[pixel+2];
+			SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
+			SDL_RenderDrawLargePoint(8, x*8, y*8);
 		}
 }
 
@@ -215,16 +238,6 @@ void drawPlayer(void)
 
 void drawRays(void)
 {
-	///*Draw top side of 3d map*/
-	//SDL_SetRenderDrawColorF(0, 1, 1, 1);
-	//SDL_Rect rect1 = {526, 0, 1006 - 526, 160 - 0};
-    //SDL_RenderFillRect(renderer, &rect1);
-
-	///*Draw bottom side of 3d map*/
-	//SDL_SetRenderDrawColorF(0, 0, 1, 1);
-	//SDL_Rect rect2 = {526, 160, 1006 - 526, 320 - 160};
-    //SDL_RenderFillRect(renderer, &rect2);
-
 	int r, mx, my, mp, dof;
 	float vx, vy, rx, ry, ra, xo, yo, disV, disH;
 
@@ -319,8 +332,8 @@ void drawRays(void)
 
   		}
 		/*----------Draw the 2D rays-----------------------------------------*/
-		SDL_SetRenderDrawColorF(0, 0.8, 0, 1);
 		float shade=1;
+		SDL_SetRenderDrawColorF(0, 0.8, 0, 1);
   		if (disV < disH) /*If a horizontal hit first, change these values*/
 		{
 			hmt = vmt;
@@ -330,21 +343,22 @@ void drawRays(void)
 			disH = disV;
 			SDL_SetRenderDrawColorF(0, 0.6, 0, 1);
 		}
-		SDL_RenderDrawThickLine(px, py, rx, ry, 2);
+		/*We dont need the 2D rays anymore*/
+		//SDL_RenderDrawThickLine(px, py, rx, ry, 2);
 		/*-------------------------------------------------------------------*/
 
 		/*---------------Draw the 3D map-------------------------------------*/
 		int ca = FixAng(pa-ra);
 		disH = disH * cos(degToRad(ca)); /*To fix fisheye effects*/
-		int lineH = (mapS * 320) / disH; /*Line height*/
+		int lineH = (mapS * 640) / disH; /*Line height*/
 		float ty_step = 32.0 / (float)lineH;
 		float ty_off = 0;
-		if (lineH >320) /*Monitor the line height and limit it*/
+		if (lineH > 640) /*Monitor the line height and limit it*/
 		{
-			ty_off = (lineH - 320)/2.0;
-			lineH = 320;
+			ty_off = (lineH - 640)/2.0;
+			lineH = 640;
 		}
-		int lineO = 160 - (lineH >> 1); /*Line offset*/
+		int lineO = 320 - (lineH >> 1); /*Line offset*/
 
 		/*----------Draw Walls------------------*/
 		int y;
@@ -373,17 +387,18 @@ void drawRays(void)
 			int green = All_Textures[pixel+1]*shade;
 			int blue = All_Textures[pixel+2]*shade;
 			SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
-			SDL_RenderDrawLargePoint(8, r * 8 + 530, y + lineO);
+			SDL_RenderDrawLargePoint(8, r * 8, y + lineO);
 			ty += ty_step;
 		}
 		/*---------Draw floors-------*/
-		for (y = lineO + lineH; y < 320; y++)
+		for (y = lineO + lineH; y < 640; y++)
 		{
-			float dy = y - (320/2.0);
+			float dy = y - (640/2.0);
 			float deg = degToRad(ra);
 			float raFix = cos(degToRad(FixAng(pa - ra)));
-			tx = px/2 + cos(deg) * 158 * 32 / dy / raFix;
-			ty = py/2 - sin(deg) * 158 * 32 / dy / raFix;
+			/*Added the *2 into tx and ty to prevent sliding*/
+			tx = px/2 + cos(deg) * 158 * 2 * 32 / dy / raFix;
+			ty = py/2 - sin(deg) * 158 * 2 * 32 / dy / raFix;
 			int mp = mapF[(int)(ty/32.0)*mapX+(int)(tx/32.0)] *32 *32;
 
 			int pixel = ((((int)ty & 31)* 32) + ((int)tx & 31)) * 3 + mp * 3;
@@ -391,18 +406,10 @@ void drawRays(void)
 			int green = All_Textures[pixel+1] * 0.7;
 			int blue = All_Textures[pixel+2] * 0.7;
 			SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
-			SDL_RenderDrawLargePoint(8, r * 8 + 530, y);
-		//	int tex_index = (((int)ty & 31)* 32) + ((int)tx & 31);
-		//	float c = all_Textures[tex_index + mp] * 0.7;
-		//	SDL_SetRenderDrawColorF(c/1.3, c/1.3, c, 1);
-		//	SDL_RenderDrawLargePoint(8, r * 8+530, y);
+			SDL_RenderDrawLargePoint(8, r * 8, y);
 
 			/*-----Draw Ceiling------*/
 			mp = mapC[(int)(ty/32.0)*mapX+(int)(tx/32.0)] *32 *32;
-		//	tex_index = (((int)ty & 31)* 32) + ((int)tx & 31);
-		//	c = all_Textures[tex_index + mp] * 0.7;
-		//	SDL_SetRenderDrawColorF(c/2.0, c/1.2, c/2.0, 1);
-		//	SDL_RenderDrawLargePoint(8, r * 8+530, 320 - y);
 			pixel = ((((int)ty & 31)* 32) + ((int)tx & 31)) * 3 + mp * 3;
 			red = All_Textures[pixel+0];
 			green = All_Textures[pixel+1];
@@ -410,7 +417,7 @@ void drawRays(void)
 			if (mp > 0) /*Only draw the ceiling if it has a value*/
 			{
 				SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
-				SDL_RenderDrawLargePoint(8, r * 8 + 530, 320 - y);
+				SDL_RenderDrawLargePoint(8, r * 8, 640 - y);
 			}
 		}
 
@@ -426,7 +433,7 @@ void display(void)
 {
 	/*Frames per second*/
 	frame2 = SDL_GetTicks(); // Get current time in milliseconds again
-	fps = 1000.0f/(frame2 - frame1); // Calculate time difference between frames
+	fps = frame2 - frame1; // Calculate time difference between frames
 	frame1 = SDL_GetTicks();
 	/*Buttons*/
 	if (keys.a) /*Turn left*/
@@ -465,10 +472,12 @@ void display(void)
 			py -= pdy*0.2*fps;
 	}
 
-	drawMap2D();
-	drawPlayer();
+	/*We dont need this for now*/
+	//drawMap2D();
+	//drawPlayer();
 	drawSky();
 	drawRays();
+	//screen(2);
 }
 
 void ButtonDown(SDL_KeyCode key)
@@ -593,6 +602,7 @@ int main(void)
 	}
 	while (1)
 	{
+		SDL_SetWindowPosition(window, SCREEN_WIDTH/2-960/2, SCREEN_HEIGHT/2-640/2);
 		//Initialize renderer color
 	    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
