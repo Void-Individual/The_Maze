@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <math.h>
-#include "../textures/sky.ppm"
-#include "../textures/All_Textures.ppm"
+#include "textures/sky.ppm"
+#include "textures/All_Textures.ppm"
 
 #define mapX  8     /*map width*/
 #define mapY  8      /*map height*/
