@@ -1,0 +1,6 @@
+{
+	"files.associations": {
+		"*.ppm": "c"
+	},
+	//"C_Cpp.errorSquiggles": "disabled"
+}
