@@ -1,0 +1,1 @@
+This dir contains the executable neccessary to run the program on windows, and all the required application extensions and folders. Please do not move any files out of this dir to prevent any potential mishaps.
