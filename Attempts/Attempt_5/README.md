@@ -1,0 +1,6 @@
+- Modified loadmedia to handle bmp and png image formats.
+- Optimizing surface loading and soft stretching.
+- Changed the instance and replaced it with global variables that can be accessed from any files without passing it through function calls.
+- Texture loading and rendering. (Implemented, but cannot be left active at the same time as the window surface)
+- Implementing Mouse event controls for SDL2 (Ended up being muc more complicated than I expected. I'll come back to it).
+- Learning raycasting and how to implement it, but didn't do it yet.

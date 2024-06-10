@@ -1,0 +1,1 @@
+- In this attempt, I figured out how to draw lines of different types on the window surface and then render them to the front of the window.

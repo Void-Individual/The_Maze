@@ -1,0 +1,14 @@
+## Changes made in this attempt
+- Smoothened out the movement. You can now move in several directions, rotating while moving without any delays or interruptions. (Repurposing the movement functions and tweaking SDL2's default config was a little coplicated but I tweaked it to fit what I wanted)
+- Tried to implement time based movement to ensure game speed consistency across devices of varying hardware. I might not have gotten my math right though.
+- Handled collision to prevent player from moving forward snd backwards through walls.
+- Desingned the 3d field to be drawn pixel by pixel instead of line by line. This have made the program much slower.
+- Added textures of different kinds to the walls
+- Created an alternate set render colour function to match the values from my texture mapping.
+- Added a shade to adjacent walls to enhance edges.
+- Added colours to the different kinds of textures.
+- Added walls and windows.
+- Configured the walls to open when "o" is pressed while standing in front of it.
+- After crossing the door, configured it to automatically close.
+- Added textures to the walls and roof, but it isnt reflecting properly due to an error in my math.
+- FIxed the errors in the roof and floor texture. Its a little skewed, but apparently, it's to be expected.
