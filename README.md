@@ -1,7 +1,7 @@
 # The Maze
 ![The Maze](img/welcome.png)
 
-This is the MVP for my portfolio project.
+This is the MVP for my solo portfolio project.
 
 You can play the maze game by downloading [The Maze](The%20Maze/) on your pc and running the file [maze.exe](The%20Maze/maze.exe). Please do not delete any of the other files or apps in this folder.
 
@@ -11,7 +11,7 @@ This is a game with relatively simple controls, and with an even simpler objecti
 
 ![Instruction page](img/instructions.png)
 
-The win objective might be confusing while opening the game for the first time, so heres a 2D map of the game, which you can toggled at any time!
+The win objective might be confusing while opening the game for the first time, so here's a 2D map of the game, which can be toggled at any time!
 
 ![2D Map](img/Map.png)
 
