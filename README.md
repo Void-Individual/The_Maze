@@ -31,7 +31,7 @@ I had a really hard time finding the right resources to help me understand the c
 	If you get caught by the guard or you run out of time,
 	the game automatically ends, and you restart immediately!
 
-![Lose Screen](img/lose.jpg)
+![Lose Screen](img/lose.png)
 
 Essentially, I spent my time learning how to raycast, how to use OpenGL, and then replicating those functions over in a different SDL2, which would not have been possible without my time learning how to use it for different functions. I got to learn how to use structs properly, how and when to make use of different kinds of global variables, how to compile and run my executable programs on not only unix terminals, but windows too.
 
