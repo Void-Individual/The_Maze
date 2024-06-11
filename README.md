@@ -13,7 +13,7 @@ This is a game with relatively simple controls, and with an even simpler objecti
 
 The win objective might be confusing while opening the game for the first time, so heres a 2D map of the game, which you can toggled at any time!
 
-[2D Map](img/Map.png)
+![2D Map](img/Map.png)
 
 The mini Anubis guard serves to make the win a little less easy than it seems though.
 
@@ -21,15 +21,13 @@ The mini Anubis guard serves to make the win a little less easy than it seems th
 
 If you get caught by the guard or you run out of time, the game automatically ends, and you restart immediately!
 
-[Lose Screen](img/lose.jpg)
+![Lose Screen](img/lose.jpg)
 
 
 A peek of the different textures available for the map/walls, ceiling and floor in this version...
 
 ![Map Textures](img/map_textures.png)
-
 ![Ceiling Textures](img/ceiling_textures.png)
-
 ![Floor Textures](img/floor_textures.png)
 
-These textures haave been converted to an array of integers, to be compiled and displayed in the game. In this file [textures](src/images/), you can find the arrays of more textures that can be used during recompilation, the source files for my code, and the makefile.
+These textures haave been converted to an array of integers, to be compiled and displayed in the game. In this file [src](src/), you can find the arrays of more textures that can be used during recompilation, the source files for my code, and the makefile.
