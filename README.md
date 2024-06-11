@@ -47,4 +47,4 @@ A peek of the different textures available for the map/walls, ceiling and floor 
 ![Ceiling Textures](img/ceiling_textures.png)
 ![Floor Textures](img/floor_textures.png)
 
-These textures haave been converted to an array of integers, to be compiled and displayed in the game. In this file [src](src/), you can find the arrays of more textures that can be used during recompilation, the source files for my code, and the makefile.
+These textures have been converted to an array of integers, to be compiled and displayed in the game. In this file [src](src/), you can find the arrays of more textures that can be used during recompilation, the source files for my code, and the makefile.
