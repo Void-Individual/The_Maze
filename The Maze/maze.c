@@ -533,6 +533,37 @@ void drawPlayer(void)
 }
 
 /**
+ * mapSprites - Function to draw sprites on the map
+ * Return: Nothing
+ */
+
+void mapSprites(void)
+{
+	int x;
+	for (x = 0; x < 4; x++)
+	{
+		if (sp[x].state == 1)
+		{
+			if (x == 0) /*If key, make it gold*/
+			{
+				SDL_SetRenderDrawColor(renderer, 255, 215, 0, 255);
+				SDL_RenderDrawLargePoint(8, sp[x].x, sp[x].y);
+			}
+			else if (x == 3) /*If enemy, make it red*/
+			{
+				SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+				SDL_RenderDrawLargePoint(8, sp[x].x, sp[x].y);
+			}
+			else /*Else, make it blue*/
+			{
+				SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+				SDL_RenderDrawLargePoint(8, sp[x].x, sp[x].y);
+			}
+		}
+	}
+}
+
+/**
  * selectTextures - 
  * @hmt: surface texture value
  * Return: pointer to an array of textures
@@ -847,6 +878,7 @@ void startGame(void)
 	{
 		drawMap2D();
 		drawPlayer();
+		mapSprites();
 	}
 
 	/*If the player gets to the specified win tile, They win, end the game*/
@@ -857,6 +889,8 @@ void startGame(void)
 		gameState = 3;
 	}
 }
+
+
 
 /**
  * init_game - Function to declare the starting positions of everything
@@ -881,8 +915,8 @@ void init_game(void)
 	sp[0].type = 1;
 	sp[0].state = 1;
 	sp[0].map = 0;
-	sp[0].x = 1.5*64;
-	sp[0].y = 5*64;
+	sp[0].x = 6.5*64;
+	sp[0].y = 5.5*64;
 	sp[0].z = 20; /*Height variable*/
 
 	/*Init sprite 2 as babe*/
@@ -905,8 +939,8 @@ void init_game(void)
 	sp[3].type = 4;
 	sp[3].state = 1;
 	sp[3].map = 2;
-	sp[3].x = 2*64;
-	sp[3].y = 3*64;
+	sp[3].x = 1.1*64;
+	sp[3].y = 1.1*64;
 	sp[3].z = 15; /*Height variable*/
 }
 
@@ -938,7 +972,7 @@ void init_gamestate(void)
 	if (gameState == 2) /*Start the game*/
 	{
 		timer += 1*fps;
-		if (timer > 30000) /*you lose the game after 20 seconds*/
+		if (timer > 50000) /*you lose the game after 50 seconds*/
 		{
 			fade = 0;
 			timer = 0;
@@ -1011,7 +1045,6 @@ void ButtonDown(SDL_KeyCode key)
 		keys.d = 1;
 	if (key == SDLK_m)
 	{
-		printf("Map activated\n");
 		if (!keys.m)
 			keys.m = 1;
 		else
@@ -1129,25 +1162,39 @@ int init(void)
 	return (0);
 }
 
-void displayWelcomeImage() {
+int displayWelcomeImage()
+{
+	SDL_Event event; /*Holds events from SDL event queue*/
+
     SDL_Texture* texture = loadTexture("images/welcome.png");
     if (texture == NULL) {
         printf("Failed to load welcome image!\n");
-        return;
+        return (2);
     }
 
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
 
-    SDL_Delay(5000); // Wait 3 seconds
+	while (SDL_WaitEvent(&event))
+	{
+		if (event.type == SDL_QUIT)
+			return (1);
+		if (event.key.keysym.sym == SDLK_SPACE)
+			return (2);
+	}
+
+    //SDL_Delay(5000); // Wait 3 seconds
 
     SDL_DestroyTexture(texture);
+	return (0);
 }
 
 int WinMain(void)
 {
     int imgFlags;
+	int running = 1;
+
 	if (init() != 0)
 	{
 		printf("Failed to init\n");
@@ -1158,9 +1205,17 @@ int WinMain(void)
  	if( !( IMG_Init( imgFlags ) & imgFlags ) )
         printf( "PNG image could not initialize! Error: %s\n", IMG_GetError());
 	else
-		displayWelcomeImage();
+  		while (1)
+			if (displayWelcomeImage() == 1)
+			{
+				running = 0;
+				break;
+			}
+			else if (displayWelcomeImage() == 2)
+				break;
+
 	frame1 = SDL_GetTicks();
-	while (1)
+	while (running)
 	{
 		SDL_SetWindowPosition(window, SCREEN_WIDTH/2-850/2, SCREEN_HEIGHT/2-550/2);
 		//Initialize renderer color
@@ -1168,7 +1223,7 @@ int WinMain(void)
 		SDL_RenderClear(renderer);
 		display();
 		if (poll_events() == 1)
-			break;
+			running = 0;
 		SDL_RenderPresent(renderer); // Update the screen
 
 	}

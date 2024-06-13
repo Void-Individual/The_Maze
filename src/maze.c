@@ -100,10 +100,10 @@ void display(void)
 int displayWelcomeImage()
 {
 	SDL_Event event; /*Holds events from SDL event queue*/
-    SDL_Texture* texture = loadTexture("src/images/welcome.png");
+    SDL_Texture* texture = loadTexture("images/welcome.png");
     if (texture == NULL) {
         printf("Failed to load welcome image!\n");
-        return (0);
+        return (2);
     }
 
     //SDL_RenderClear(renderer);

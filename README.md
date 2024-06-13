@@ -1,9 +1,15 @@
 # The Maze
 ![The Maze](img/welcome.png)
-Link to my LinkedIn profile [Linkedin](https://www.linkedin.com/in/tolu-otayomi-319330289)
+
+These are the links to my articles on LinkedIn and Twitter, please engage them:
+
+[Linkedin](https://www.linkedin.com/posts/tolu-otayomi-319330289_alxabrse-activity-7206872385457688576-fY9Z)
+
+[Twitter/X](https://x.com/OtayomiTolu/status/1801112947009163449)
+
 	This is the MVP for my solo portfolio project.
 
-At the end of June, I was struggling to decide on what to build for my portfolio project and teammates to work on it with. I had known for a while that whatever I decide to build, my involvement in the project should be mostly backend, as I am much more interested in writing the development code than in designing the user interactive platform.
+At the end of April, I was struggling to decide on what to build for my portfolio project and teammates to work on it with. I had known for a while that whatever I decide to build, my involvement in the project should be mostly backend, as I am much more interested in writing the development code than in designing the user interactive platform.
 
 	This is a game with relatively simple controls and with
 	an even simpler objective, which is to reach the goal
@@ -37,9 +43,9 @@ Essentially, I spent my time learning how to raycast, how to use OpenGL, and the
 
 Most importantly, I have learned patience, perseverance, how to debug using the best debugging tool (printf) and to never ever mess with unallocated memory and uninitialized pointers and pointer functions as you can save yourself a lot of SEGFAULT errors which you cannot seem to trace in the middle of a thousand lines of code.
 
-You can play the maze game by downloading [The Maze](The%20Maze/) on your pc and running the file [maze.exe](The%20Maze/maze.exe). Please do not delete any of the other files or apps in this folder.
+You can play the maze game by downloading [The Maze](The%20Maze/) on your pc and running the compiled executable [maze.exe](The%20Maze/maze.exe). Please do not delete any of the other files or apps in this folder.
 
-If you want to run the program on a unix system, download and run this script [install_SDL2](install_SDL2.sh) to install SDL2 required extensions on your terminal, then you can run the compiled executable [maze](maze) to have your fun.
+If you intend to run the program on a unix system, download and run this script [install_SDL2](The%20Maze/install_SDL2.sh) to install SDL2 required extensions on your terminal, then you can run the file [maze](The%20Maze/maze) to have your fun.
 
 A peek of the different textures available for the map/walls, ceiling and floor in this version...
 
