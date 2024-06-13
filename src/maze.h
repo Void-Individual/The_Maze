@@ -117,7 +117,8 @@ void drawSky(void);
 void drawMap2D(void);
 void drawRays(void);
 void display(void);
-void displayWelcomeImage(void);
+int displayWelcomeImage(void);
+void mapSprites(void);
 
 SDL_Texture *loadTexture(char *path);
 int *selectTextures(int hmt);

@@ -97,20 +97,30 @@ void display(void)
  * Return: Nothing
 */
 
-void displayWelcomeImage()
+int displayWelcomeImage()
 {
-    SDL_Texture* texture = loadTexture("images/welcome.png");
+	SDL_Event event; /*Holds events from SDL event queue*/
+    SDL_Texture* texture = loadTexture("src/images/welcome.png");
     if (texture == NULL) {
         printf("Failed to load welcome image!\n");
-        return;
+        return (0);
     }
 
     //SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
 
-    SDL_Delay(5000); /*Wait 5 seconds*/
+	while (SDL_WaitEvent(&event))
+	{
+		if (event.type == SDL_QUIT)
+			return (1);
+		if (event.key.keysym.sym == SDLK_SPACE)
+			return (2);
+	}
+
+    //SDL_Delay(5000); /*Wait 5 seconds*/
     SDL_DestroyTexture(texture);
+	return (0);
 }
 
 /**
@@ -156,6 +166,7 @@ int init(void)
 
 int main(void)
 {
+	int running = 1;
     int imgFlags;
 	if (init() != 0)
 	{
@@ -167,10 +178,17 @@ int main(void)
  	if( !( IMG_Init( imgFlags ) & imgFlags ) )
         printf( "PNG image could not initialize! Error: %s\n", IMG_GetError());
 	else
-		displayWelcomeImage();
+		while (1)
+			if (displayWelcomeImage() == 1)
+			{
+				running = 0;
+				break;
+			}
+			else if (displayWelcomeImage() == 2)
+				break;
 
 	frame1 = SDL_GetTicks();
-	while (1)
+	while (running)
 	{
 		SDL_SetWindowPosition(window, SCREEN_WIDTH/2-850/2, SCREEN_HEIGHT/2-550/2);
 		//Initialize renderer color
@@ -178,7 +196,7 @@ int main(void)
 		SDL_RenderClear(renderer);
 		display();
 		if (poll_events() == 1)
-			break;
+			running = 0;
 		SDL_RenderPresent(renderer); // Update the screen
 
 	}

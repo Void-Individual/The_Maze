@@ -217,3 +217,34 @@ void drawPlayer(void)
 	/*Small directional pointer*/
 	//SDL_RenderDrawLine(renderer, px, py, px+pdx*10, py+pdy*10);
 }
+
+/**
+ * mapSprites - Function to draw sprites on the map
+ * Return: Nothing
+ */
+
+void mapSprites(void)
+{
+	int x;
+	for (x = 0; x < 4; x++)
+	{
+		if (sp[x].state == 1)
+		{
+			if (x == 0) /*If key, make it gold*/
+			{
+				SDL_SetRenderDrawColor(renderer, 255, 215, 0, 255);
+				SDL_RenderDrawLargePoint(8, sp[x].x, sp[x].y);
+			}
+			else if (x == 3) /*If enemy, make it red*/
+			{
+				SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+				SDL_RenderDrawLargePoint(8, sp[x].x, sp[x].y);
+			}
+			else /*Else, make it blue*/
+			{
+				SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+				SDL_RenderDrawLargePoint(8, sp[x].x, sp[x].y);
+			}
+		}
+	}
+}

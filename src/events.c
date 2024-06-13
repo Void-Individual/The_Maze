@@ -25,7 +25,6 @@ void ButtonDown(SDL_KeyCode key)
 		keys.d = 1;
 	if (key == SDLK_m)
 	{
-		printf("Map activated\n");
 		if (!keys.m)
 			keys.m = 1;
 		else

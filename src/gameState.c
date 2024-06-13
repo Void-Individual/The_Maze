@@ -55,6 +55,7 @@ void startGame(void)
 	{
 		drawMap2D();
 		drawPlayer();
+		mapSprites();
 	}
 
 	/*If the player gets to the specified win tile, They win, end the game*/
@@ -89,8 +90,8 @@ void init_game(void)
 	sp[0].type = 1;
 	sp[0].state = 1;
 	sp[0].map = 0;
-	sp[0].x = 1.5*64;
-	sp[0].y = 5*64;
+	sp[0].x = 6.5*64;
+	sp[0].y = 5.5*64;
 	sp[0].z = 20; /*Height variable*/
 
 	/*Init sprite 2 as babe*/
@@ -113,8 +114,8 @@ void init_game(void)
 	sp[3].type = 4;
 	sp[3].state = 1;
 	sp[3].map = 2;
-	sp[3].x = 2*64;
-	sp[3].y = 3*64;
+	sp[3].x = 1.1*64;
+	sp[3].y = 1.1*64;
 	sp[3].z = 15; /*Height variable*/
 }
 
@@ -146,7 +147,7 @@ void init_gamestate(void)
 	if (gameState == 2) /*Start the game*/
 	{
 		timer += 1*fps;
-		if (timer > 30000) /*you lose the game after 20 seconds*/
+		if (timer > 50000) /*you lose the game after 50 seconds*/
 		{
 			fade = 0;
 			timer = 0;
