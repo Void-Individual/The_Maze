@@ -29,18 +29,36 @@ void *spriteTexture(int type)
 int *selectTextures(int hmt)
 {
 	/*Note that the hmt values are one behind the map values*/
-	if (hmt == 0)
-		return (red_brick);
-	if (hmt == 1)
-		return (small_red_bricks);
-	if (hmt == 2)
-		return (closed_door);
-	if (hmt == 3)
-		return (open_door);
-	if (hmt == 4)
-		return (win_tile);
+	if (stage == 1)
+	{
+		if (hmt == 0)
+			return (hexagons);
+		if (hmt == 1)
+			return (hightech);
+		if (hmt == 2)
+			return (techwall);
+		if (hmt == 3)
+			return (techpipe);
+		if (hmt == 4)
+			return (win_tile);
+		else
+			return (metal_surface);
+	}
 	else
-		return (metal_surface);
+	{
+		if (hmt == 0)
+			return (red_brick);
+		if (hmt == 1)
+			return (small_red_bricks);
+		if (hmt == 2)
+			return (closed_door);
+		if (hmt == 3)
+			return (open_door);
+		if (hmt == 4)
+			return (win_tile);
+		else
+			return (metal_surface);
+	}
 }
 
 /**

@@ -21,6 +21,10 @@
 #include "textures/enemy2.ppm"
 #include "textures/snow.ppm"
 #include "textures/water.ppm"
+#include "textures/hexagons.ppm"
+#include "textures/techwall.ppm"
+#include "textures/techpipe.ppm"
+#include "textures/hightech.ppm"
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
@@ -28,7 +32,7 @@ SDL_Surface *screen_surface = NULL;
 
 float px,py,pdx,pdy,pa;
 float movementSpeed = 0.08;
-float rotationSpeed = 0.06;
+float rotationSpeed = 0.07;
 
 Uint32 frame1,frame2;
 float fps;
@@ -37,6 +41,7 @@ int old_wall = -1; /*Give the old wall an invalid value*/
 int door_open = 0; /*Bool condition for toggling door*/
 int door = 3; /*The door tile value*/
 int temp_door = 4; /*If the door has been opened, replace with this instead*/
+int unlock = 0; /*Set doors to open with key*/
 
 int gameState = 0, timer = 0;
 float fade = 0;
@@ -44,8 +49,13 @@ float fade = 0;
 sprite sp[4]; /*This declares 4 sprites*/
 ButtonKeys keys;
 int depth[120];
+int stage = 0; /*To control stage levels*/
 
-int mapW[]= {          /*walls*/
+int *mapW;
+int *mapF;
+int *mapC;
+
+int stage_1_w[]= {          /*walls*/
 	1, 1, 1, 1, 1, 1, 1, 1,
 	5, 0, 0, 1, 0, 0, 0, 1,
 	1, 0, 0, 3, 0, 2, 0, 1,
@@ -56,7 +66,7 @@ int mapW[]= {          /*walls*/
 	1, 1, 1, 1, 1, 1, 1, 1,
 };
 
-int mapF[]= {          /*floors*/
+int stage_1_f[]= {          /*floors*/
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 1, 1, 0, 0,
 	0, 0, 0, 0, 1, 1, 1, 0,
@@ -67,12 +77,78 @@ int mapF[]= {          /*floors*/
 	0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-int mapC[]= {          /*ceiling*/
+int stage_1_c[]= {          /*ceiling*/
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 1, 0,
 	0, 1, 2, 1, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+int stage_0_w[]= {          /*walls*/
+	3, 3, 3, 3, 2, 2, 2, 2,
+	3, 0, 0, 0, 0, 0, 0, 5,
+	3, 3, 3, 0, 2, 2, 0, 2,
+	3, 0, 3, 0, 2, 0, 0, 2,
+	4, 0, 0, 0, 0, 0, 0, 1,
+	4, 4, 0, 4, 4, 4, 0, 1,
+	4, 0, 0, 0, 0, 0, 0, 1,
+	4, 4, 4, 4, 1, 1, 1, 1,
+};
+
+int stage_0_f[]= {          /*floors*/
+  	1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+};
+
+int stage_0_c[]= {          /*ceiling*/
+	3, 3, 3, 3, 3, 3, 3, 3,
+	3, 2, 3, 3, 3, 3, 4, 3,
+	3, 3, 3, 3, 2, 3, 3, 3,
+	3, 3, 3, 4, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 2,
+	3, 4, 3, 3, 3, 3, 3, 3,
+	3, 3, 2, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 4, 3, 3,
+};
+
+int plain_walls[] = { 		/*Just one wall type*/
+	1, 1, 1, 1, 1, 1, 1, 1,
+	5, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1,
+};
+
+int no_roof[] = {           /*No ceiling*/
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+int plain_floor[] = {       /*No design on floor*/
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,

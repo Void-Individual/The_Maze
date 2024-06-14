@@ -37,12 +37,26 @@ extern int ceiling_textures[];
 extern int enemy[];
 extern int enemy2[];
 extern int toilet_guy[];
+extern int hexagons[];
+extern int techwall[];
+extern int techpipe[];
+extern int hightech[];
 /*-------------------------------------------------------------------*/
 
 /*-----------------Map Variables-------------------------------------*/
-extern int mapW[];          /*walls*/
-extern int mapF[];          /*floors*/
-extern int mapC[];          /*ceiling*/
+extern int *mapW;          /*walls*/
+extern int *mapF;          /*floors*/
+extern int *mapC;          /*ceiling*/
+extern int stage_1_w[];
+extern int stage_1_f[];
+extern int stage_1_c[];
+extern int stage_0_w[];
+extern int stage_0_f[];
+extern int stage_0_c[];
+extern int plain_walls[];
+extern int no_roof[];
+extern int plain_floor[];
+
 /*-----------------SDL2 Necessary Variables--------------------------*/
 extern SDL_Window *window;
 extern SDL_Renderer *renderer;
@@ -59,10 +73,12 @@ extern int old_wall; /*Give the old wall an invalid value*/
 extern int door_open; /*Bool condition for toggling door*/
 extern int door; /*The door tile value*/
 extern int temp_door; /*If the door has been opened, replace with this instead*/
+extern int unlock;
 
 extern int gameState, timer;
 extern float fade;
 extern int depth[120];
+extern int stage; /*To control stage levels*/
 
 /**
  * struct ButtonKeys - Struct to handle button commands

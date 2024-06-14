@@ -54,3 +54,9 @@ A peek of the different textures available for the map/walls, ceiling and floor 
 ![Floor Textures](img/floor_textures.png)
 
 These textures have been converted to an array of integers, to be compiled and displayed in the game. In this file [src](src/), you can find the arrays of more textures that can be used during recompilation, the source files for my code, and the makefile.
+
+Latest Updates:
+Added new levels to prepare you before the main stage:
+Details:
+- Added new textures
+- Created a new tech maze stage
