@@ -1,32 +1,5 @@
 #include "maze.h"
 
-void stageZero(void)
-{
-	mapW = stage_0_w;
-	mapF = stage_0_f;
-	mapC = stage_0_c;
-
-	/*Reset the doors*/
-	//mapW[19] = 3;
-	//mapW[26] = 3;
-	door_open = 0;
-	old_wall = -1;
-	unlock = 1;
-
-	/*Declare the players starting point*/
-	px = 4 * 64; py = 4 * 64;
-	/*Declare the players starting angles*/
-	pa = 90;
-	pdx = cos(degToRad(pa));
-	pdy = -sin(degToRad(pa));
-
-	/*Deactivate all sprites*/
-	sp[0].state = 0;
-	sp[1].state = 0;
-	sp[2].state = 0;
-	sp[3].state = 0;
-}
-
 /**
  * startGame - Function to start the visible game process
  * Return: Nothing
@@ -55,6 +28,8 @@ void startGame(void)
 	int yo = 0; if (pdy < 0) yo = -20; else yo = 20;
 	int ipx = px/64.0, ipx_add_xo = (px+xo)/64.0, ipx_sub_xo = (px-xo)/64.0;
 	int ipy = py/64.0, ipy_add_yo = (py+yo)/64.0, ipy_sub_yo = (py-yo)/64.0;
+	int front_index = ipy_add_yo * mapX + ipx_add_xo;
+	int back_index = ipy_sub_yo * mapX + ipx_sub_xo;
 
 	if (keys.w) /*Move forward*/
 	{
@@ -85,7 +60,12 @@ void startGame(void)
 	}
 
 	/*If the player gets to the specified win tile, They win, end the game*/
-	if ((int)px >> 6 == 1 && (int)py >> 6 == 1)
+	int win = 0;
+	if (stage != 1 && front_index == 8)
+		win = 1;
+	else if (front_index == 15)
+		win = 1;
+	if (win)
 	{
 		fade = 0;
 		timer = 0;
@@ -140,7 +120,7 @@ void init_gamestate(void)
 			timer = 0;
 			gameState = 0;
 			stage++;
-			if (stage > 2)
+			if (stage == 3)
 				stage = 0;
 		}
 	}

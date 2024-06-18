@@ -28,6 +28,10 @@
 #include "textures/enemy2.ppm"
 #include "textures/snow.ppm"
 #include "textures/water.ppm"
+#include "textures/hexagons.ppm"
+#include "textures/techwall.ppm"
+#include "textures/techpipe.ppm"
+#include "textures/hightech.ppm"
 
 #define mapX  8     /*map width*/
 #define mapY  8      /*map height*/
@@ -50,7 +54,7 @@ float FixAng(float a)
 
 float px,py,pdx,pdy,pa;
 float movementSpeed = 0.08;
-float rotationSpeed = 0.06;
+float rotationSpeed = 0.07;
 Uint32 frame1,frame2;
 float fps;
 SDL_Window *window = NULL;
@@ -64,9 +68,11 @@ int old_wall = -1; /*Give the old wall an invalid value*/
 int door_open = 0; /*Bool condition for toggling door*/
 int door = 3; /*The door tile value*/
 int temp_door = 4; /*If the door has been opened, replace with this instead*/
+int unlock = 0; /*Set doors to open with key*/
 
 int gameState = 0, timer = 0;
 float fade = 0;
+int stage = 0; /*To control stage levels*/
 
 /**
  * struct ButtonKeys - Struct to handle button commands
@@ -93,8 +99,44 @@ typedef struct
 } sprite; sprite sp[4]; /*This declares 4 sprites*/
 int depth[120];
 
-int winTile = 1;
-int mapW[]= {          /*walls*/
+int *mapW;
+int *mapF;
+int *mapC;
+
+int stage_0_w[]= {          /*walls*/
+	3, 3, 3, 3, 2, 2, 2, 2,
+	3, 0, 0, 0, 0, 0, 0, 5,
+	3, 3, 3, 0, 2, 2, 0, 2,
+	3, 0, 3, 0, 2, 0, 0, 2,
+	4, 0, 0, 0, 0, 0, 0, 1,
+	4, 4, 0, 4, 4, 4, 0, 1,
+	4, 0, 0, 0, 0, 0, 0, 1,
+	4, 4, 4, 4, 1, 1, 1, 1,
+};
+
+int stage_0_f[]= {          /*floors*/
+	1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+};
+
+int stage_0_c[]= {          /*ceiling*/
+	3, 3, 3, 3, 3, 3, 3, 3,
+	3, 2, 3, 3, 3, 3, 4, 3,
+	3, 3, 3, 3, 2, 3, 3, 3,
+	3, 3, 3, 4, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 2,
+	3, 4, 3, 3, 3, 3, 3, 3,
+	3, 3, 2, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 4, 3, 3,
+};
+
+int stage_1_w[]= {          /*walls*/
 	1, 1, 1, 1, 1, 1, 1, 1,
 	5, 0, 0, 1, 0, 0, 0, 1,
 	1, 0, 0, 3, 0, 2, 0, 1,
@@ -105,7 +147,7 @@ int mapW[]= {          /*walls*/
 	1, 1, 1, 1, 1, 1, 1, 1,
 };
 
-int mapF[]= {          /*floors*/
+int stage_1_f[]= {          /*floors*/
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 1, 1, 0, 0,
 	0, 0, 0, 0, 1, 1, 1, 0,
@@ -116,12 +158,45 @@ int mapF[]= {          /*floors*/
 	0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-int mapC[]= {          /*ceiling*/
+int stage_1_c[]= {          /*ceiling*/
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 1, 0,
 	0, 1, 2, 1, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+int plain_walls[] = { 		/*Just one wall type*/
+	1, 1, 1, 1, 1, 1, 1, 1,
+	5, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1,
+};
+
+int no_roof[] = {           /*No ceiling*/
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+int plain_floor[] = {       /*No design on floor*/
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -135,8 +210,7 @@ int mapC[]= {          /*ceiling*/
  * @x: starting x pos
  * @y: starting y pos
  * Return: Nothing
-*/
-
+*//*-------------CUSTOM SDL2 FUNCTIONS-----------------------------------------*/
 void SDL_RenderDrawLargePoint(int size, int x, int y)
 {
 	SDL_Rect rect = {x - size/2, y - size/2, size, size};
@@ -145,8 +219,7 @@ void SDL_RenderDrawLargePoint(int size, int x, int y)
 
 /**
  * SDL_RenderDrawLargerPoint - Function to draw a quad with multiplied values
- * into a larger point.
- * @size: size of the quad
+  into a larger point.
  * @x: starting x pos
  * @y: starting y pos
  * Return: Nothing
@@ -235,36 +308,6 @@ void drawRectOutline(SDL_Renderer* renderer, SDL_Rect rect)
 
     /*Draw the right side*/
     SDL_RenderDrawLine(renderer, rect.x + rect.w, rect.y, rect.x + rect.w, rect.y + rect.h);
-}
-
-/**
- * loadSurface - FUnction to load image at a path
- * @path: Path to the image
- * Return: The loaded image
-*/
-
-SDL_Surface *loadSurface(char *path)
-{
-	/*Load image at the specified path*/
-	SDL_Surface *loadedsurface = NULL;
-	SDL_Surface *optimizedSurface = NULL;
-
-	if (strcmp(path, "../image/welcome.png") == 0)
-		loadedsurface = IMG_Load(path);
-	else
-		loadedsurface = SDL_LoadBMP(path);
-
-	if (loadedsurface == NULL)
-		printf("Unable to load image %s\nError: %s\n", path, SDL_GetError());
-	else /*convert surface to screen format*/
-	{
-		optimizedSurface = SDL_ConvertSurface(loadedsurface, screen_surface->format, 0);
-		if (optimizedSurface == NULL)
-			printf("Unable to optimize image %s!\n Error: %s\n", path, SDL_GetError());
-		SDL_FreeSurface(loadedsurface); /*Get rid of old loaded surface*/
-	}
-
-	return (optimizedSurface);
 }
 
 /**
@@ -422,12 +465,13 @@ void drawSprite(void)
 	if (px < sp[0].x+30 && px > sp[0].x-30 && py < sp[0].y+30 && py > sp[0].y-30)
 	sp[0].state = 0; /*If youre close to its position, pick it up*/
 	/*If enemy comes close to player*/
-	if (px < sp[3].x+30 && px > sp[3].x-30 && py < sp[3].y+30 && py > sp[3].y-30)
-	{/*Lose the game and restart*/
-		fade = 0;
-		timer = 0;
-		gameState = 4;
-	}
+	if (sp[3].state)
+		if (px < sp[3].x+30 && px > sp[3].x-30 && py < sp[3].y+30 && py > sp[3].y-30)
+		{/*Lose the game and restart*/
+			fade = 0;
+			timer = 0;
+			gameState = 4;
+		}
 
 	/*Enemy attack*/
 	/*Normal grid position of sprite*/
@@ -572,18 +616,36 @@ void mapSprites(void)
 int *selectTextures(int hmt)
 {
 	/*Note that the hmt values are one behind the map values*/
-	if (hmt == 0)
-		return (red_brick);
-	if (hmt == 1)
-		return (small_red_bricks);
-	if (hmt == 2)
-		return (closed_door);
-	if (hmt == 3)
-		return (open_door);
-	if (hmt == 4)
-		return (win_tile);
+	if (stage == 1)
+	{
+		if (hmt == 0)
+			return (hexagons);
+		if (hmt == 1)
+			return (hightech);
+		if (hmt == 2)
+			return (techwall);
+		if (hmt == 3)
+			return (techpipe);
+		if (hmt == 4)
+			return (win_tile);
+		else
+			return (metal_surface);
+	}
 	else
-		return (metal_surface);
+	{
+		if (hmt == 0)
+			return (red_brick);
+		if (hmt == 1)
+			return (small_red_bricks);
+		if (hmt == 2)
+			return (closed_door);
+		if (hmt == 3)
+			return (open_door);
+		if (hmt == 4)
+			return (win_tile);
+		else
+			return (metal_surface);
+	}
 }
 
 /**
@@ -853,6 +915,8 @@ void startGame(void)
 	int yo = 0; if (pdy < 0) yo = -20; else yo = 20;
 	int ipx = px/64.0, ipx_add_xo = (px+xo)/64.0, ipx_sub_xo = (px-xo)/64.0;
 	int ipy = py/64.0, ipy_add_yo = (py+yo)/64.0, ipy_sub_yo = (py-yo)/64.0;
+	int front_index = ipy_add_yo * mapX + ipx_add_xo;
+	int back_index = ipy_sub_yo * mapX + ipx_sub_xo;
 
 	if (keys.w) /*Move forward*/
 	{
@@ -880,9 +944,12 @@ void startGame(void)
 		drawPlayer();
 		mapSprites();
 	}
-
-	/*If the player gets to the specified win tile, They win, end the game*/
-	if ((int)px >> 6 == 1 && (int)py >> 6 == 1)
+	int win = 0;
+	if (stage != 1 && front_index == 8)
+		win = 1;
+	else if (front_index == 15)
+		win = 1;
+	if (win)
 	{
 		fade = 0;
 		timer = 0;
@@ -890,15 +957,43 @@ void startGame(void)
 	}
 }
 
+void stage_1(void)
+{
+	mapW = stage_0_w;
+	mapF = plain_floor;
+	mapC = stage_0_c;
 
+	/*Reset the doors*/
+ 	//mapW[19] = 3;
+	//mapW[26] = 3;
+	door_open = 0;
+	old_wall = -1;
+	unlock = 1;
+
+	/*Declare the players starting point*/
+	px = 4.5 * 64; py = 4.5 * 64;
+	/*Declare the players starting angles*/
+	pa = 90;
+	pdx = cos(degToRad(pa));
+	pdy = -sin(degToRad(pa));
+
+	/*Deactivate all sprites*/
+	sp[0].state = 0;
+	sp[1].state = 0;
+	sp[2].state = 0;
+	sp[3].state = 0;
+}
 
 /**
- * init_game - Function to declare the starting positions of everything
+ * stage_2 - Function to declare the starting positions for stage 1
  * Return: Nothing
- */
+*/
 
-void init_game(void)
+void stage_2(void)
 {
+	mapW = stage_1_w;
+	mapF = stage_1_f;
+	mapC = stage_1_c;
 	/*Declare the players starting point*/
 	px = 150; py = 400;
 	/*Declare the players starting angles*/
@@ -910,6 +1005,7 @@ void init_game(void)
 	mapW[26] = 3;
 	door_open = 0;
 	old_wall = -1;
+	unlock = 0;
 
 	/*Init sprite 1 as key*/
 	sp[0].type = 1;
@@ -945,6 +1041,50 @@ void init_game(void)
 }
 
 /**
+ * init_stage - Function to declare the starting positions of everything
+ * Return: Nothing
+*/
+
+void stage_0(void)
+{
+	mapW = plain_walls;
+	mapF = plain_floor;
+	mapC = no_roof;
+
+	/*Reset the doors*/
+ 	//mapW[19] = 3;
+	//mapW[26] = 3;
+	door_open = 0;
+	old_wall = -1;
+	unlock = 1;
+
+	/*Declare the players starting point*/
+	px = 4 * 64; py = 4 * 64;
+	/*Declare the players starting angles*/
+	pa = 90;
+	pdx = cos(degToRad(pa));
+	pdy = -sin(degToRad(pa));
+
+	/*Deactivate all sprites*/
+	sp[0].state = 0;
+	sp[1].state = 0;
+	sp[2].state = 0;
+	sp[3].state = 0;
+}
+
+void init_stage(void)
+{
+	if (stage == 0)
+		stage_0();
+	else if (stage == 1)
+		stage_1();
+	else if (stage == 2)
+		stage_2();
+	else
+		stage_0();
+}
+
+/**
  * init_gamestate - Function to cycle the game through different run states
  * Return: Nothing
 */
@@ -956,7 +1096,7 @@ void init_gamestate(void)
 		timer = 0;
 		fade = 0;
 		gameState = 1;
-		init_game();
+		init_stage();
 	}
 	if (gameState == 1) /*Start scren*/
 	{
@@ -989,6 +1129,9 @@ void init_gamestate(void)
 		{
 			fade = 0;
 			timer = 0;
+			stage++;
+			if (stage == 3)
+				stage = 0;
 			gameState = 0;
 		}
 	}
@@ -1020,6 +1163,7 @@ void display(void)
 	//startGame();
 }
 
+
 /**
  * ButtonDown - Function to check which instance->keys have been pressed down
  * @key: Variable that contains the keycode
@@ -1050,8 +1194,9 @@ void ButtonDown(SDL_KeyCode key)
 		else
 			keys.m = 0;
 	}
-		
-	if (key == SDLK_o && sp[0].state == 0) /*Open and close doors*/
+	if (sp[0].state == 0)
+		unlock = 1;
+	if (key == SDLK_o && unlock) /*Open and close doors*/
 	{
 		//printf("front_index: %d\npx: %f\npy: %f\n", front_index, px, py);
 		if (mapW[front_index] == door) /*Open the door*/

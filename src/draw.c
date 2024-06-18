@@ -108,12 +108,13 @@ void drawSprite(void)
 	if (px < sp[0].x+30 && px > sp[0].x-30 && py < sp[0].y+30 && py > sp[0].y-30)
 	sp[0].state = 0; /*If youre close to its position, pick it up*/
 	/*If enemy comes close to player*/
-	if (px < sp[3].x+30 && px > sp[3].x-30 && py < sp[3].y+30 && py > sp[3].y-30)
-	{/*Lose the game and restart*/
-		fade = 0;
-		timer = 0;
-		gameState = 4;
-	}
+	if (sp[3].state)
+		if (px < sp[3].x+30 && px > sp[3].x-30 && py < sp[3].y+30 && py > sp[3].y-30)
+		{/*Lose the game and restart*/
+			fade = 0;
+			timer = 0;
+			gameState = 4;
+		}
 
 	/*Enemy attack*/
 	/*Normal grid position of sprite*/
