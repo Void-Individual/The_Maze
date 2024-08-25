@@ -1,11 +1,13 @@
+/*------------Standard libraries-----------------*/
 #include "stdio.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <math.h>
+/*------------SDL2 Libraries---------------------*/
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <math.h>
-
+/*------------Texture paths----------------------*/
 #include "textures/sky.ppm"
 #include "textures/start.ppm"
 #include "textures/win.ppm"
@@ -21,21 +23,25 @@
 #include "textures/small_red_bricks.ppm"
 #include "textures/blue_tile_wall.ppm"
 #include "textures/metal_surface.ppm"
-#include "textures/enemy.ppm"
+#include "textures/pacman.ppm"
+#include "textures/skull.ppm"
 #include "textures/key.ppm"
 #include "textures/babe.ppm"
 #include "textures/toilet_guy.ppm"
-#include "textures/enemy2.ppm"
+#include "textures/anubis.ppm"
 #include "textures/snow.ppm"
 #include "textures/water.ppm"
 #include "textures/hexagons.ppm"
 #include "textures/techwall.ppm"
 #include "textures/techpipe.ppm"
 #include "textures/hightech.ppm"
+#include "textures/spookydoor.ppm"
+#include "textures/officedoor.ppm"
+/*-----------------------------------------------*/
 
-#define mapX  8     /*map width*/
-#define mapY  8      /*map height*/
-#define mapS 64      /*map cube size*/
+#define mapX  10     /*map width*/
+#define mapY  10      /*map height*/
+#define mapS  64      /*map cube size*/
 
 float degToRad(float a)
 {
@@ -69,10 +75,15 @@ int door_open = 0; /*Bool condition for toggling door*/
 int door = 3; /*The door tile value*/
 int temp_door = 4; /*If the door has been opened, replace with this instead*/
 int unlock = 0; /*Set doors to open with key*/
-
+int win_point;
 int gameState = 0, timer = 0;
 float fade = 0;
 int stage = 0; /*To control stage levels*/
+int pac_move;
+int skull_move;
+int anubis_timer;
+float a_a, a_dx, a_dy;
+int map_timer;
 
 /**
  * struct ButtonKeys - Struct to handle button commands
@@ -97,110 +108,270 @@ typedef struct
 	int map; /*The texture to be shown*/
 	float x, y, z; /*The position*/
 } sprite; sprite sp[4]; /*This declares 4 sprites*/
+
 int depth[120];
 
 int *mapW;
 int *mapF;
 int *mapC;
 
-int stage_0_w[]= {          /*walls*/
-	3, 3, 3, 3, 2, 2, 2, 2,
-	3, 0, 0, 0, 0, 0, 0, 5,
-	3, 3, 3, 0, 2, 2, 0, 2,
-	3, 0, 3, 0, 2, 0, 0, 2,
-	4, 0, 0, 0, 0, 0, 0, 1,
-	4, 4, 0, 4, 4, 4, 0, 1,
-	4, 0, 0, 0, 0, 0, 0, 1,
-	4, 4, 4, 4, 1, 1, 1, 1,
-};
-
-int stage_0_f[]= {          /*floors*/
-	1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1,
-};
-
-int stage_0_c[]= {          /*ceiling*/
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 2, 3, 3, 3, 3, 4, 3,
-	3, 3, 3, 3, 2, 3, 3, 3,
-	3, 3, 3, 4, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 2,
-	3, 4, 3, 3, 3, 3, 3, 3,
-	3, 3, 2, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 4, 3, 3,
-};
-
 int stage_1_w[]= {          /*walls*/
-	1, 1, 1, 1, 1, 1, 1, 1,
-	5, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 3, 0, 2, 0, 1,
-	1, 1, 3, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 2, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
+    1, 0, 0, 0, 2, 0, 0, 0, 0, 2,
+    1, 0, 3, 0, 2, 0, 3, 3, 0, 2,
+    1, 0, 3, 0, 0, 0, 0, 3, 0, 2,
+    1, 0, 3, 0, 3, 3, 0, 3, 0, 2,
+    1, 0, 0, 0, 0, 3, 0, 0, 0, 2,
+    4, 4, 4, 0, 4, 4, 4, 4, 0, 2,
+    4, 0, 0, 0, 0, 0, 0, 4, 0, 2,
+    4, 0, 4, 4, 4, 4, 0, 4, 5, 2,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
 };
 
 int stage_1_f[]= {          /*floors*/
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 1, 1, 0, 0,
-	0, 0, 0, 0, 1, 1, 1, 0,
-	0, 0, 0, 0, 0, 0, 1, 0,
-	0, 0, 1, 0, 0, 0, 1, 0,
-	0, 0, 1, 0, 0, 0, 1, 0,
-	0, 1, 1, 1, 1, 1, 1, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
 
 int stage_1_c[]= {          /*ceiling*/
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 1, 0,
-	0, 1, 2, 1, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
+	3, 3, 4, 3, 3, 2, 3, 3, 4, 3,
+    3, 2, 3, 3, 3, 4, 3, 3, 3, 4,
+    3, 3, 3, 3, 4, 3, 3, 3, 2, 3,
+    4, 3, 3, 3, 3, 2, 3, 3, 4, 3,
+    3, 3, 2, 3, 3, 3, 3, 4, 3, 3,
+    3, 4, 3, 3, 3, 3, 4, 3, 3, 3,
+    3, 3, 3, 4, 3, 3, 3, 3, 2, 3,
+    3, 4, 3, 3, 3, 4, 3, 3, 3, 3,
+    3, 3, 3, 2, 3, 3, 3, 4, 3, 3,
+    2, 3, 3, 3, 3, 3, 2, 3, 3, 4,
+
+};
+
+int stage_2_w[]= {          /*walls*/
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	5, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 1, 3, 1, 3, 1, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 0, 0, 0, 1, 0, 1,
+	1, 0, 0, 0, 0, 1, 1, 0, 0, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 1, 0, 2, 0, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+};
+
+int stage_3_w[]= {          /*walls*/
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 0, 1, 1, 0, 1, 0, 1,
+	1, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+	1, 0, 1, 1, 1, 0, 1, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1, 0, 1,
+	1, 0, 1, 0, 1, 0, 1, 1, 0, 1,
+	1, 0, 1, 0, 1, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 5, 1,
+};
+
+int stage_2_f[]= {          /*floors*/
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+int stage_2_c[]= {          /*ceiling*/
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+	0, 0, 0, 0, 0, 2, 0, 2, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
 int plain_walls[] = { 		/*Just one wall type*/
-	1, 1, 1, 1, 1, 1, 1, 1,
-	5, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	5, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 1, 1, 1, 1, 1, 1, 0, 1,
+	1, 0, 1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 1, 0, 1, 1, 1, 1, 1, 1,
+	1, 0, 1, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
+	1, 1, 1, 1, 1, 0, 1, 1, 1, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
 
 int no_roof[] = {           /*No ceiling*/
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
 int plain_floor[] = {       /*No design on floor*/
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
+
+/*-----------------PATHFINDING ALGORITHM-------------------------------------*/
+/*---------Constants and data structures---------*/
+#define MAP_SIZE (mapX * mapY)
+
+typedef struct {
+    int x, y;
+} Point;
+
+typedef struct Node {
+    Point position;
+    int gCost, hCost, fCost;
+    struct Node* parent;
+} Node;
+
+Node* openList[MAP_SIZE];
+int openListCount = 0;
+Node* closedList[MAP_SIZE];
+int closedListCount = 0;
+
+/*----------Helper functions-----------------------*/
+int heuristic(Point start, Point end) {
+    return abs(start.x - end.x) + abs(start.y - end.y);
+}
+
+void addToOpenList(Node* node) {
+    openList[openListCount++] = node;
+}
+
+void addToClosedList(Node* node) {
+    closedList[closedListCount++] = node;
+}
+
+Node* findNodeWithLowestFCost() {
+    Node* lowest = openList[0];
+    for (int i = 1; i < openListCount; i++) {
+        if (openList[i]->fCost < lowest->fCost) {
+            lowest = openList[i];
+        }
+    }
+    return lowest;
+}
+
+int isPointInList(Point point, Node* list[], int listCount) {
+    for (int i = 0; i < listCount; i++) {
+        if (list[i]->position.x == point.x && list[i]->position.y == point.y) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int isWalkable(Point point) {
+    if (point.x < 0 || point.x >= mapX || point.y < 0 || point.y >= mapY) {
+        return 0; // Out of bounds
+    }
+    return mapW[point.y * mapX + point.x] == 0;
+}
+
+/*---------Pathfinding function------------*/
+Node* findPath(Point start, Point end) {
+    Node* startNode = malloc(sizeof(Node));
+    startNode->position = start;
+    startNode->gCost = 0;
+    startNode->hCost = heuristic(start, end);
+    startNode->fCost = startNode->gCost + startNode->hCost;
+    startNode->parent = NULL;
+
+    addToOpenList(startNode);
+
+    while (openListCount > 0) {
+        Node* currentNode = findNodeWithLowestFCost();
+        if (currentNode->position.x == end.x && currentNode->position.y == end.y) {
+            return currentNode;
+        }
+
+        addToClosedList(currentNode);
+        // Remove currentNode from openList
+        for (int i = 0; i < openListCount; i++) {
+            if (openList[i] == currentNode) {
+                for (int j = i; j < openListCount - 1; j++) {
+                    openList[j] = openList[j + 1];
+                }
+                openListCount--;
+                break;
+            }
+        }
+
+        Point neighbors[4] = {
+            {currentNode->position.x + 1, currentNode->position.y},
+            {currentNode->position.x - 1, currentNode->position.y},
+            {currentNode->position.x, currentNode->position.y + 1},
+            {currentNode->position.x, currentNode->position.y - 1}
+        };
+
+        for (int i = 0; i < 4; i++) {
+            Point neighborPosition = neighbors[i];
+            if (!isWalkable(neighborPosition) || isPointInList(neighborPosition, closedList, closedListCount)) {
+                continue;
+            }
+
+            int tentativeGCost = currentNode->gCost + 1; // Assuming cost of moving to neighbor is 1
+            int neighborIndex = isPointInList(neighborPosition, openList, openListCount);
+            Node* neighborNode;
+            if (neighborIndex == -1) {
+                neighborNode = malloc(sizeof(Node));
+                neighborNode->position = neighborPosition;
+                neighborNode->gCost = tentativeGCost;
+                neighborNode->hCost = heuristic(neighborPosition, end);
+                neighborNode->fCost = neighborNode->gCost + neighborNode->hCost;
+                neighborNode->parent = currentNode;
+                addToOpenList(neighborNode);
+            } else {
+                neighborNode = openList[neighborIndex];
+                if (tentativeGCost < neighborNode->gCost) {
+                    neighborNode->gCost = tentativeGCost;
+                    neighborNode->fCost = neighborNode->gCost + neighborNode->hCost;
+                    neighborNode->parent = currentNode;
+                }
+            }
+        }
+    }
+
+    return NULL; // No path found
+}
+
+/*---------------------------------------------------------------------------*/
 
 /*-------------CUSTOM SDL2 FUNCTIONS-----------------------------------------*/
 /**
@@ -346,36 +517,41 @@ SDL_Texture *loadTexture(char *path)
 void drawMap2D(void)
 {
 	int x, y, xo, yo;
-
+	int newMapS = mapS / 3;
 	for (y = 0; y < mapY; y++)
 		for (x = 0; x < mapX; x++)
 		{
-			xo = x * mapS;
-			yo = y * mapS;
+			xo = x * newMapS;
+			yo = y * newMapS;
 			if (mapW[y * mapX + x] > 0)
 			{
 				int a, b;
 				/*Adjust index to match texture array*/
 				int ty = (mapW[y * mapX + x] - 1) * 32 * 32 * 3;
 
-				for (a = 0; a < 64; a+=2)
-					for (b = 0; b < 64; b+=2)
+				for (a = 0; a < newMapS; a++)
+					for (b = 0; b < newMapS; b++)
 					{
-						int pixel = (((a/2) % 32) * 32 + ((b/2) % 32))*3 + ty; // Repeat texture
+						/* Calculate the pixel position in the texture array*/
+						// Map the smaller square onto the original 32x32 texture
+						int texture_x = (b * 32) / newMapS;
+						int texture_y = (a * 32) / newMapS;
+						int pixel = (texture_y * 32 + texture_x) * 3 + ty;
+						//int pixel = (((a % 32)) * 32 + ((b % 32))) * 3 + ty; // Repeat texture and adjust frr scaling
 						int red = map_textures[pixel+0];
 						int green = map_textures[pixel+1];
 						int blue = map_textures[pixel+2];
 						SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
-						SDL_Rect rect = {xo+b, yo+a, 2, 2};
-            		    SDL_RenderFillRect(renderer, &rect);
+						SDL_Rect rect = {xo+b, yo+a, 1, 1};
+            SDL_RenderFillRect(renderer, &rect);
 					}
 			}
 			else
 			{
 				SDL_SetRenderDrawColor(renderer, 165, 42, 42, 255); // Brown color
-				SDL_Rect rect = {xo, yo, mapS-1, mapS-1};
-                //SDL_RenderFillRect(renderer, &rect);
-                drawRectOutline(renderer, rect);
+				SDL_Rect rect = {xo, yo, newMapS-1, newMapS-1};
+        //SDL_RenderFillRect(renderer, &rect);
+        drawRectOutline(renderer, rect);
 			}
 		}
 }
@@ -450,21 +626,60 @@ void *spriteTexture(int type)
 	if (type == 1)
 		return (key);
 	if (type == 2)
-		return (babe);
+		return (skull);
 	if (type == 3)
-		return (enemy);
+		return (pacman);
 	if (type == 4)
-		return (enemy2);
+		return (anubis);
 	if (type == 5)
 		return (toilet_guy);
 }
 
-void drawSprite(void)
+void stage_3_anubis_attack(void)
 {
-	/*Make this sprite a key*/
-	if (px < sp[0].x+30 && px > sp[0].x-30 && py < sp[0].y+30 && py > sp[0].y-30)
-	sp[0].state = 0; /*If youre close to its position, pick it up*/
-	/*If enemy comes close to player*/
+	/*Variables required to stop player from moving forward and backward through walls*/
+	int xo = (a_dx < 0) ? -20 : 20;
+	int yo = (a_dy < 0) ? -20 : 20;
+	int ipx = sp[3].x/64.0;
+	int ipx_add_xo = (sp[3].x+xo)/64.0;
+	int ipx_sub_xo = (sp[3].x-xo)/64.0;
+	int ipy = sp[3].y/64.0;
+	int ipy_add_yo = (sp[3].y+yo)/64.0;
+	int ipy_sub_yo = (sp[3].y-yo)/64.0;
+	int front_index = ipy_add_yo * mapX + ipx_add_xo;
+	int back_index = ipy_sub_yo * mapX + ipx_sub_xo;
+
+	anubis_timer = 1;
+	if (anubis_timer == 0 && px > 6 * 64)
+		anubis_timer = 1;
+
+	// Calculate the angle to the player
+	float targetAngle = atan2(py - sp[3].y, px - sp[3].x) * (180.0 / M_PI);
+	targetAngle = FixAng(targetAngle);
+
+	// Determine if the sprite should turn left or right
+	float angleDifference = FixAng(targetAngle - a_a);
+
+	if (angleDifference > 0 && angleDifference <= 180)
+	    a_a += rotationSpeed * fps; 	 // Turn right
+
+	else if (angleDifference > 180 || angleDifference < 0)
+	    a_a -= rotationSpeed * fps;	    // Turn left
+
+	a_a = FixAng(a_a);
+	a_dx = cos(degToRad(a_a));
+	a_dy = sin(degToRad(a_a));
+
+	if (anubis_timer)
+	{
+		/*Always Move forward*/
+		if (mapW[ipy * mapX + ipx_add_xo] == 0)
+			sp[3].x += a_dx*0.05*fps;
+		if (mapW[ipy_add_yo * mapX + ipx] == 0)
+			sp[3].y += a_dy*0.05*fps;
+
+	}
+
 	if (sp[3].state)
 		if (px < sp[3].x+30 && px > sp[3].x-30 && py < sp[3].y+30 && py > sp[3].y-30)
 		{/*Lose the game and restart*/
@@ -472,27 +687,242 @@ void drawSprite(void)
 			timer = 0;
 			gameState = 4;
 		}
+}
 
-	/*Enemy attack*/
+void anubis_attack(void)
+{
 	/*Normal grid position of sprite*/
-	int spx = (int)sp[3].x >> 6, spy = (int)sp[3].y >> 6; 
+	int spx = (int)sp[3].x >> 6, spy = (int)sp[3].y >> 6;
 	/*normal grid position plus offset*/
 	int spx_add = ((int)sp[3].x + 15) >> 6, spy_add = ((int)sp[3].y + 15) >> 6;
 	/*normal grid position minus offset*/
 	int spx_sub = ((int)sp[3].x - 15) >> 6, spy_sub = ((int)sp[3].y - 15) >> 6;
 
 	/*Stop the enemy from walking through walls*/
-	if (sp[3].x > px && (mapW[spy * 8 + spx_sub] == 0 || mapW[spy * 8 + spx_sub] == temp_door)) /*If the player is to the left*/
+	if (sp[3].x > px && (mapW[spy * 10 + spx_sub] == 0)) /*If the player is to the left*/
 		sp[3].x -= 0.03 * fps; /*Move to the left*/
-	if (sp[3].x < px && (mapW[spy * 8 + spx_add] == 0|| mapW[spy * 8 + spx_add] == temp_door)) /*If the player is to the right*/
+	if (sp[3].x < px && (mapW[spy * 10 + spx_add] == 0)) /*If the player is to the right*/
 		sp[3].x += 0.03 * fps; /*Move to the right*/
-	if (sp[3].y < py && (mapW[spy_add * 8 + spx] == 0 || mapW[spy_add * 8 + spx] == temp_door)) /*If the player is below the enemy*/
+	if (sp[3].y < py && (mapW[spy_add * 10 + spx] == 0)) /*If the player is below the enemy*/
 		sp[3].y += 0.03 * fps; /*Move downward*/
-	if (sp[3].y > py && (mapW[spy_sub * 8 + spx] == 0 || mapW[spy_sub * 8 + spx] == temp_door)) /*If the player is above the enemy*/
-		sp[3].y -= 0.03 * fps; /*Move to the left*/
+	if (sp[3].y > py && (mapW[spy_sub * 10 + spx] == 0)) /*If the player is above the enemy*/
+		sp[3].y -= 0.03 * fps; /*Move upward*/
+
+	if (sp[3].state)
+		if (px < sp[3].x+30 && px > sp[3].x-30 && py < sp[3].y+30 && py > sp[3].y-30)
+		{/*Lose the game and restart*/
+			fade = 0;
+			timer = 0;
+			gameState = 4;
+		}
+}
+
+void stage_2_anubis_attack(void)
+{
+	/*Normal grid position of sprite*/
+	int spx = (int)sp[3].x >> 6, spy = (int)sp[3].y >> 6;
+	/*normal grid position plus offset*/
+	int spx_add = ((int)sp[3].x + 15) >> 6, spy_add = ((int)sp[3].y + 15) >> 6;
+	/*normal grid position minus offset*/
+	int spx_sub = ((int)sp[3].x - 15) >> 6, spy_sub = ((int)sp[3].y - 15) >> 6;
+
+	anubis_timer += fps;
+	if (anubis_timer > 5000)
+	{
+		/*Stop the enemy from walking through walls*/
+		if (sp[3].x > px && (mapW[spy * 10 + spx_sub] == 0)) /*If the player is to the left*/
+			sp[3].x -= 0.03 * fps; /*Move to the left*/
+		//else
+		//	sp[3].y += 0.03 * fps; /*Move downward*/
+		if (sp[3].x < px && (mapW[spy * 10 + spx_add] == 0)) /*If the player is to the right*/
+			sp[3].x += 0.03 * fps; /*Move to the right*/
+		if (sp[3].y < py && (mapW[spy_add * 10 + spx] == 0)) /*If the player is below the enemy*/
+			sp[3].y += 0.03 * fps; /*Move downward*/
+
+		if (sp[3].y > py && (mapW[spy_sub * 10 + spx] == 0)) /*If the player is above the enemy*/
+			sp[3].y -= 0.03 * fps; /*Move upward*/
+		//else if (mapW[spy * 10 + spx_sub] == 0)
+		//	sp[3].x -= 0.03 * fps; /*Move to the left*/
+
+		if (anubis_timer > 10000)
+			anubis_timer = 0;
+	}
+
+	if (sp[3].state)
+		if (px < sp[3].x+30 && px > sp[3].x-30 && py < sp[3].y+30 && py > sp[3].y-30)
+		{/*Lose the game and restart*/
+			fade = 0;
+			timer = 0;
+			gameState = 4;
+		}
+}
+
+void stage_3_skull_attack(void)
+{
+	/*Normal grid position of sprite*/
+	int spx = (int)sp[1].x >> 6, spy = (int)sp[1].y >> 6;
+	/*normal grid position plus offset*/
+	int spx_add = ((int)sp[1].x + 35) >> 6, spy_add = ((int)sp[1].y + 35) >> 6;
+	/*normal grid position minus offset*/
+	int spx_sub = ((int)sp[1].x - 35) >> 6, spy_sub = ((int)sp[1].y - 35) >> 6;
+
+	/*Stop the enemy from walking through walls*/
+//	if (skull_move == 1) /*If the player is to the left*/
+//	{
+//		if (mapW[spy * 10 + spx_sub] != 0)
+//			skull_move = 3;
+//		else
+//			sp[1].x -= 0.06 * fps; /*Move to the left*/
+//	}
+//	else if (skull_move == 2)
+//	{
+//		if (mapW[spy * 10 + spx_add] != 0) /*If the player is to the right*/
+//			skull_move = 4;
+//		else
+//			sp[1].x += 0.06 * fps; /*Move to the right*/
+//	}
+	if (skull_move == 2)
+	{
+		if (mapW[spy_add * 10 + spx] != 0) /*If the sprite hits a bottom wall*/
+			skull_move = 1;
+		else
+			sp[1].y += 0.06 * fps; /*Move downward*/
+	}
+
+	else if (skull_move == 1)
+	{
+		if ((mapW[spy_sub * 10 + spx] != 0)) /*If the sprite hits a top wall*/
+			skull_move = 2;
+		else
+			sp[1].y -= 0.06 * fps; /*Move upward*/
+	}
+
+	if (sp[1].state)
+		if (px < sp[1].x+30 && px > sp[1].x-30 && py < sp[1].y+30 && py > sp[1].y-30)
+		{/*Lose the game and restart*/
+			fade = 0;
+			timer = 0;
+			gameState = 4;
+		}
+}
+
+void skull_attack(void)
+{
+	/*Normal grid position of sprite*/
+	int spx = (int)sp[1].x >> 6, spy = (int)sp[1].y >> 6;
+	/*normal grid position plus offset*/
+	int spx_add = ((int)sp[1].x + 35) >> 6, spy_add = ((int)sp[1].y + 35) >> 6;
+	/*normal grid position minus offset*/
+	int spx_sub = ((int)sp[1].x - 35) >> 6, spy_sub = ((int)sp[1].y - 35) >> 6;
+
+	/*Stop the enemy from walking through walls*/
+	if (skull_move == 1) /*If the player is to the left*/
+	{
+		if (mapW[spy * 10 + spx_sub] != 0)
+			skull_move = 3;
+		else
+			sp[1].x -= 0.06 * fps; /*Move to the left*/
+	}
+	else if (skull_move == 2)
+	{
+		if (mapW[spy * 10 + spx_add] != 0) /*If the player is to the right*/
+			skull_move = 4;
+		else
+			sp[1].x += 0.06 * fps; /*Move to the right*/
+	}
+	else if (skull_move == 3)
+	{
+		if (mapW[spy_add * 10 + spx] != 0) /*If the player is below the enemy*/
+			skull_move = 2;
+		else
+			sp[1].y += 0.06 * fps; /*Move downward*/
+	}
+
+	else if (skull_move == 4)
+	{
+		if ((mapW[spy_sub * 10 + spx] != 0) || (sp[1].y < (6.1 * 64) + 30)) /*If the player is above the enemy*/
+			skull_move = 1;
+		else
+			sp[1].y -= 0.06 * fps; /*Move upward*/
+	}
+
+	if (sp[1].state)
+		if (px < sp[1].x+30 && px > sp[1].x-30 && py < sp[1].y+30 && py > sp[1].y-30)
+		{/*Lose the game and restart*/
+			fade = 0;
+			timer = 0;
+			gameState = 4;
+		}
+}
+
+void pacman_attack(void)
+{
+	/*Normal grid position of sprite*/
+	int spx = (int)sp[2].x >> 6, spy = (int)sp[2].y >> 6;
+	/*normal grid position plus offset*/
+	int spx_add = ((int)sp[2].x + 15) >> 6, spy_add = ((int)sp[2].y + 15) >> 6;
+	/*normal grid position minus offset*/
+	int spx_sub = ((int)sp[2].x - 15) >> 6, spy_sub = ((int)sp[2].y - 15) >> 6;
+
+	/*Stop the enemy from walking through walls*/
+	if (pac_move) /*If there's space to the left*/
+	{
+		if (mapW[spy * 10 + spx_sub] != 0)
+			pac_move = 0;
+		else
+			sp[2].x -= 0.08 * fps; /*Move to the left*/
+	}
+	else if (!pac_move) /*If there's space to the right*/
+	{;
+		if (mapW[spy * 10 + spx_add] != 0)
+			pac_move = 1;
+		else
+			sp[2].x += 0.08 * fps;/*Move to the right*/
+	}
+
+	if (sp[2].state)
+		if (px < sp[2].x+30 && px > sp[2].x-30 && py < sp[2].y+30 && py > sp[2].y-30)
+		{/*Lose the game and restart*/
+			fade = 0;
+			timer = 0;
+			gameState = 4;
+		}
+}
+
+void drawSprite(void)
+{
+	/*Make this sprite a key*/
+	if (px < sp[0].x+30 && px > sp[0].x-30 && py < sp[0].y+30 && py > sp[0].y-30)
+		sp[0].state = 0; /*If youre close to its position, pick it up*/
+
 	int x, y, s;
 	for (s = 0; s < 4; s++) /*to cycle through all 4 sprites*/
 	{
+		if (s == 1)
+			if (stage == 3)
+				stage_3_skull_attack();
+			else
+				skull_attack();
+
+		if (s == 2)
+			pacman_attack();
+
+		if (s == 3)
+			if (stage == 2)
+				stage_2_anubis_attack();
+			else if (stage == 3)
+				stage_3_anubis_attack();
+			else
+				anubis_attack();
+
+		/*If enemy comes close to player*/
+		if (sp[s].state)
+			if (px < sp[s].x+30 && px > sp[s].x-30 && py < sp[s].y+30 && py > sp[s].y-30)
+			{/*Lose the game and restart*/
+				fade = 0;
+				timer = 0;
+				gameState = 4;
+			}
 		/*This is done using a 3D projection matrix*/
 		float sx = sp[s].x - px; /*Temp float variables*/
 		float sy = sp[s].y - py;
@@ -515,7 +945,7 @@ void drawSprite(void)
 		sy = (sz * 108.0/sy) + (80/2);
 
 
-			
+
 		int x, y, scale= 32 * 80 / b; /*Variables to draw a line*/
 
 		/* Check if the scale is valid */
@@ -523,7 +953,7 @@ void drawSprite(void)
 			scale = 0;
 		if (scale > 120)
 			scale = 120;
-    
+
 		/*Textures*/
 		float t_x = 0, t_y = 31, t_y_step = 32.0 / (float)scale;
 		float t_x_step = 31.5 / (float)scale;
@@ -533,7 +963,7 @@ void drawSprite(void)
 			t_y = 31;
 			for (y = 0; y < scale; y++)
 			{
-				if (sp[s].state == 1 && x > 0 && x < 120 && b < depth[x])
+				if (sp[s].state && x > 0 && x < 120 && b < depth[x])
 				{
 					int *Texture = spriteTexture(sp[s].type);
 					int pixel = ((int)t_y*32 + (int)t_x)*3;// + (hmt*32*32*3); /*Add hmt to retrieve the right texture per tile*/
@@ -570,13 +1000,13 @@ void drawPlayer(void)
 	if (py > SCREEN_HEIGHT)		py = SCREEN_HEIGHT - 1;
 
 	SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
-	SDL_RenderDrawLargePoint(8, px, py);
+	SDL_RenderDrawLargePoint(2, px/3, py/3);
 
 	/*Small directional pointer*/
 	//SDL_RenderDrawLine(renderer, px, py, px+pdx*10, py+pdy*10);
 }
 
-/**
+/**m
  * mapSprites - Function to draw sprites on the map
  * Return: Nothing
  */
@@ -591,24 +1021,26 @@ void mapSprites(void)
 			if (x == 0) /*If key, make it gold*/
 			{
 				SDL_SetRenderDrawColor(renderer, 255, 215, 0, 255);
-				SDL_RenderDrawLargePoint(8, sp[x].x, sp[x].y);
+				SDL_RenderDrawLargePoint(4, sp[x].x/3, sp[x].y/3);
 			}
-			else if (x == 3) /*If enemy, make it red*/
+			else /*If enemy, make it red*/
 			{
 				SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-				SDL_RenderDrawLargePoint(8, sp[x].x, sp[x].y);
+				SDL_RenderDrawLargePoint(2, sp[x].x/3, sp[x].y/3);
+				if (x == 3) /*Small directional pointer*/
+					SDL_RenderDrawLine(renderer,  sp[x].x/3,  sp[x].y/3,  (sp[x].x+a_dx*10)/3, (sp[x].y+a_dy*10)/3 );
 			}
-			else /*Else, make it blue*/
-			{
-				SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-				SDL_RenderDrawLargePoint(8, sp[x].x, sp[x].y);
-			}
+			//else /*Else, make it blue*/
+			//{
+			//	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+			//	SDL_RenderDrawLargePoint(4, sp[x].x/2, sp[x].y/2);
+			//}
 		}
 	}
 }
 
 /**
- * selectTextures - 
+ * selectTextures -
  * @hmt: surface texture value
  * Return: pointer to an array of textures
  */
@@ -627,7 +1059,7 @@ int *selectTextures(int hmt)
 		if (hmt == 3)
 			return (techpipe);
 		if (hmt == 4)
-			return (win_tile);
+			return (spookydoor);
 		else
 			return (metal_surface);
 	}
@@ -652,13 +1084,13 @@ int *selectTextures(int hmt)
  * setTextureColor: Function to set the rendere colour to rgb
  * @hmt: The surface texture value
  * @shade: the intensity of light to be drawn on the surface
- * @tx: the x axis of the surface to be textured
+ * @tx: the x xis of the surface to be textured
  * @ty: the y axis of the surface to be textured
  * @wall: if the surface is a wall, this var should be 1, else 0
  * @floor: if the surface is a floor, this var should be 1, else 0
  * @ceiling: if the surface is a ceiling, this var should be 1, else 0
  * @mp: this variable is only needed if either ceiling or floor is 1
- * Return: Nothing 
+ * Return: Nothing
 */
 
 void setTextureColor(int hmt, float shade, float tx, float ty, int wall, int floor, int ceiling, int mp)
@@ -811,8 +1243,8 @@ void drawRays(void)
 			SDL_SetRenderDrawColorF(0, 0.6, 0, 1);
 		}
 		/*Only Show the 2D rays if tha map key was pressed*/
-		if (keys.m)
-			SDL_RenderDrawThickLine(px, py, rx, ry, 2);
+		if (keys.m && stage != 1 && map_timer < 50000)
+			SDL_RenderDrawThickLine(px/3, py/3, rx/3, ry/3, 1);
 		/*-------------------------------------------------------------------*/
 
 		/*---------------Draw the 3D map-------------------------------------*/
@@ -887,11 +1319,30 @@ void drawRays(void)
 
 }
 
+void gameTimer(void)
+{
+	/* Set and draw the timer for the game session*/
+	SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+	int x1 = 0;
+	int y1 = SCREEN_HEIGHT - 10;
+	int x2 = ((float)timer / 50000) * SCREEN_WIDTH;
+	int y2 = SCREEN_HEIGHT - 10;
+	SDL_RenderDrawThickLine(x1, y1 , x2, y2, 10);
+
+	/* Set and draw a map for the map time elapsed*/
+	SDL_SetRenderDrawColor(renderer, 100, 205, 200, 255);
+	x1 = 0;
+	y1 = SCREEN_HEIGHT - 20;
+	x2 = ((float)map_timer / 20000) * SCREEN_WIDTH;
+	y2 = SCREEN_HEIGHT - 20;
+	SDL_RenderDrawThickLine(x1, y1 , x2, y2, 5);
+}
+
 /**
  * startGame - Function to start the visible game process
  * Return: Nothing
  */
- 
+
 void startGame(void)
 {
 	/*Buttons*/
@@ -934,21 +1385,23 @@ void startGame(void)
 	}
 
 	/*We dont need this for now*/
-	
+
 	drawSky();
 	drawRays();
 	drawSprite();
-	if (keys.m == 1) /*If the map key has been pressed*/
+	gameTimer();
+	if (keys.m == 1 && stage != 1 && map_timer < 20000) /*If the map key has been pressed*/
 	{
+		map_timer += fps;
 		drawMap2D();
 		drawPlayer();
 		mapSprites();
 	}
+
 	int win = 0;
-	if (stage != 1 && front_index == 8)
+	if (front_index == win_point)
 		win = 1;
-	else if (front_index == 15)
-		win = 1;
+
 	if (win)
 	{
 		fade = 0;
@@ -959,19 +1412,21 @@ void startGame(void)
 
 void stage_1(void)
 {
-	mapW = stage_0_w;
+	mapW = stage_1_w;
 	mapF = plain_floor;
-	mapC = stage_0_c;
+	mapC = stage_1_c;
 
 	/*Reset the doors*/
  	//mapW[19] = 3;
 	//mapW[26] = 3;
+	keys.m = 0;
+	map_timer = 0;
 	door_open = 0;
 	old_wall = -1;
 	unlock = 1;
-
+	win_point = 88;
 	/*Declare the players starting point*/
-	px = 4.5 * 64; py = 4.5 * 64;
+	px = 4.5 * 64; py = 5.5 * 64;
 	/*Declare the players starting angles*/
 	pa = 90;
 	pdx = cos(degToRad(pa));
@@ -991,21 +1446,86 @@ void stage_1(void)
 
 void stage_2(void)
 {
-	mapW = stage_1_w;
-	mapF = stage_1_f;
-	mapC = stage_1_c;
+	mapW = stage_2_w;
+	mapF = stage_2_f;
+	mapC = stage_2_c;
 	/*Declare the players starting point*/
-	px = 150; py = 400;
+	px = 64 * 1.2; py = 64 * 8.8;
 	/*Declare the players starting angles*/
-	pa = 90;
+	pa = 45;
 	pdx = cos(degToRad(pa));
 	pdy = -sin(degToRad(pa));
 	/*Reset the doors*/
-	mapW[19] = 3;
-	mapW[26] = 3;
+	mapW[25] = 3;
+	mapW[27] = 3;
+	map_timer = 0;
 	door_open = 0;
 	old_wall = -1;
 	unlock = 0;
+	keys.m = 0;
+	win_point = 10;
+
+	/*Init sprite 1 as key*/
+	sp[0].type = 1;
+	sp[0].state = 1;
+	sp[0].map = 0;
+	sp[0].x = 6.5 * 64;
+	sp[0].y = 8.5 * 64;
+	sp[0].z = 20; /*Height variable*/
+
+	/*Init sprite 2 as skull*/
+	sp[1].type = 2;
+	sp[1].state = 1;
+	sp[1].map = 1;
+	sp[1].x = 6.5 * 64;
+	sp[1].y = 6.5* 64;
+	sp[1].z = 15; /*Height variable*/
+	skull_move= 1;
+
+	/*Init sprite 3 as pacman*/
+	sp[2].type = 3;
+	sp[2].state = 1;
+	sp[2].map = 1;
+	sp[2].x = 1.5 * 64;
+	sp[2].y = 1.5 * 64;
+	sp[2].z = 15; /*Height variable*/
+	pac_move = 1;
+
+	/*Init sprite 4 as anubis*/
+	sp[3].type = 4;
+	sp[3].state = 1;
+	sp[3].map = 2;
+	sp[3].x = 4.5 * 64;
+	sp[3].y = 6.5 * 64;
+	sp[3].z = 15; /*Height variable*/
+	anubis_timer = 0;
+}
+
+/**
+ * stage_3 - Function to declare the starting positions for stage 1
+ * Return: Nothing
+*/
+
+void stage_3(void)
+{
+	mapW = stage_3_w;
+	mapF = stage_2_f;
+	mapC = stage_2_c;
+	keys.m = 0;
+	map_timer = 0;
+	/*Declare the players starting point*/
+	py = 5.5 * 64; px = 2.5 * 64;
+	/*Declare the players starting angles*/
+	pa = 180;
+	pdx = cos(degToRad(pa));
+	pdy = -sin(degToRad(pa));
+	/*Reset the doors*/
+	mapW[88] = 3;
+	mapW[53] = 3;
+	door_open = 0;
+	old_wall = -1;
+	unlock = 0;
+	win_point = 98;
 
 	/*Init sprite 1 as key*/
 	sp[0].type = 1;
@@ -1015,29 +1535,35 @@ void stage_2(void)
 	sp[0].y = 5.5*64;
 	sp[0].z = 20; /*Height variable*/
 
-	/*Init sprite 2 as babe*/
+	/*Init sprite 2 as skull*/
 	sp[1].type = 2;
 	sp[1].state = 1;
 	sp[1].map = 1;
 	sp[1].x = 1.5*64;
 	sp[1].y = 4.5*64;
 	sp[1].z = 10; /*Height variable*/
+	skull_move = 1;
 
-	/*Init sprite 3 as toilet guy*/
+	/*Init sprite 3 as pacman*/
 	sp[2].type = 5;
 	sp[2].state = 1;
 	sp[2].map = 1;
-	sp[2].x = 3.5*64;
-	sp[2].y = 4.5*64;
+	sp[2].x = 1.5*64;
+	sp[2].y = 1.5*64;
 	sp[2].z = 10; /*Height variable*/
+	pac_move = 1;
 
-	/*Init sprite 4 as enemy*/
+	/*Init sprite 4 as anubis*/
 	sp[3].type = 4;
 	sp[3].state = 1;
 	sp[3].map = 2;
-	sp[3].x = 1.1*64;
-	sp[3].y = 1.1*64;
+	sp[3].x = 8.5 * 64;
+	sp[3].y = 7.5 * 64;
 	sp[3].z = 15; /*Height variable*/
+	anubis_timer = 0;
+	a_a = 90;
+	a_dx = cos(degToRad(a_a));
+	a_dy = -sin(degToRad(a_a));
 }
 
 /**
@@ -1052,16 +1578,24 @@ void stage_0(void)
 	mapC = no_roof;
 
 	/*Reset the doors*/
- 	//mapW[19] = 3;
-	//mapW[26] = 3;
+ 	mapW[51] = 3;
+	mapW[54] = 3;
+	mapW[34] = 3;
+	mapW[28] = 3;
+	mapW[75] = 3;
+	mapW[56] = 3;
+
+	keys.m = 0;
+	map_timer =0;
 	door_open = 0;
 	old_wall = -1;
 	unlock = 1;
+	win_point = 10;
 
 	/*Declare the players starting point*/
-	px = 4 * 64; py = 4 * 64;
+	px = 1.5 * 64; py = 8.5 * 64;
 	/*Declare the players starting angles*/
-	pa = 90;
+	pa = 0;
 	pdx = cos(degToRad(pa));
 	pdy = -sin(degToRad(pa));
 
@@ -1080,10 +1614,11 @@ void init_stage(void)
 		stage_1();
 	else if (stage == 2)
 		stage_2();
+	else if (stage == 3)
+		stage_3();
 	else
 		stage_0();
 }
-
 /**
  * init_gamestate - Function to cycle the game through different run states
  * Return: Nothing
@@ -1091,6 +1626,7 @@ void init_stage(void)
 
 void init_gamestate(void)
 {
+	// stage = 3;
 	if (gameState == 0) /*Init the game*/
 	{
 		timer = 0;
@@ -1130,7 +1666,7 @@ void init_gamestate(void)
 			fade = 0;
 			timer = 0;
 			stage++;
-			if (stage == 3)
+			if (stage == 4)
 				stage = 0;
 			gameState = 0;
 		}
